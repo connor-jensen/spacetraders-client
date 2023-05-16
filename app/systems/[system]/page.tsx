@@ -16,9 +16,9 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { useShipyard, useWaypoints } from "@/hooks/systemsHooks";
-import { ShipType, Waypoint } from "@/spacetraders-sdk/src";
+import { Ship, ShipRole, ShipType, Waypoint } from "@/spacetraders-sdk/src";
 import { DialogDescription, DialogTitle } from "@radix-ui/react-dialog";
-import { usePurchaseShip } from "@/hooks/fleetHooks";
+import { useNavigateShip, usePurchaseShip, useShips } from "@/hooks/fleetHooks";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -174,49 +174,77 @@ function PurchaseShipButton({
 }
 
 function SendShipMenu({ waypoint }: { waypoint: string }) {
+  const { data: ships } = useShips();
+
+  if (!ships) {
+    return <div>loading ships...</div>;
+  }
+
+  const surveyors = ships.filter(
+    (ship) => ship.registration.role === "SURVEYOR"
+  );
+  const excavators = ships.filter(
+    (ship) => ship.registration.role === "EXCAVATOR"
+  );
+  const command = ships.filter((ship) => ship.registration.role === "COMMAND");
+
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <Button variant="outline">Send Ship</Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent className="w-56">
-        <DropdownMenuGroup>
-          <DropdownMenuSub>
-            <DropdownMenuSubTrigger>
-              <span>Send Probe</span>
-            </DropdownMenuSubTrigger>
-            <DropdownMenuPortal>
-              <DropdownMenuSubContent>
-                <DropdownMenuItem>
-                  <span>Probe 1</span>
-                </DropdownMenuItem>
-                <DropdownMenuItem>
-                  <span>Probe 2</span>
-                </DropdownMenuItem>
-              </DropdownMenuSubContent>
-            </DropdownMenuPortal>
-          </DropdownMenuSub>
-        </DropdownMenuGroup>
-        <DropdownMenuGroup>
-          <DropdownMenuSub>
-            <DropdownMenuSubTrigger>
-              <span>Send Miner</span>
-            </DropdownMenuSubTrigger>
-            <DropdownMenuPortal>
-              <DropdownMenuSubContent>
-                <DropdownMenuItem>
-                  <span>Miner 1</span>
-                </DropdownMenuItem>
-                <DropdownMenuItem>
-                  <span>Miner 2</span>
-                </DropdownMenuItem>
-              </DropdownMenuSubContent>
-            </DropdownMenuPortal>
-          </DropdownMenuSub>
-        </DropdownMenuGroup>
+        <SendShipGroup shipGroup={command} groupName="COMMAND" destinationWaypoint={waypoint} />
+        <SendShipGroup shipGroup={surveyors} groupName="SURVEYOR" destinationWaypoint={waypoint}/>
+        <SendShipGroup shipGroup={excavators} groupName="EXCAVATOR" destinationWaypoint={waypoint}/>
       </DropdownMenuContent>
     </DropdownMenu>
   );
 }
 
-function seperateTraits(waypoint: Waypoint) {}
+function SendShipGroup({
+  shipGroup,
+  groupName,
+  destinationWaypoint,
+}: {
+  shipGroup: Ship[];
+  groupName: ShipRole;
+  destinationWaypoint: string
+}) {
+  return (
+    <DropdownMenuGroup>
+      <DropdownMenuSub>
+        <DropdownMenuSubTrigger>
+          <span>Send {groupName}</span>
+        </DropdownMenuSubTrigger>
+        <DropdownMenuPortal>
+          <DropdownMenuSubContent>
+            {shipGroup.length > 0 &&
+              shipGroup.map((ship) => (
+                <SendShipItem ship={ship} destinationWaypoint={destinationWaypoint}/>
+              ))}
+          </DropdownMenuSubContent>
+        </DropdownMenuPortal>
+      </DropdownMenuSub>
+    </DropdownMenuGroup>
+  );
+}
+
+function SendShipItem({
+  ship,
+  destinationWaypoint,
+}: {
+  ship: Ship;
+  destinationWaypoint: string;
+}) {
+  const { mutate: sendShip } = useNavigateShip(
+    ship.symbol,
+    destinationWaypoint
+  );
+
+  return (
+    <DropdownMenuItem>
+      <span onClick={() => sendShip()}>{ship.symbol}</span>
+    </DropdownMenuItem>
+  );
+}
