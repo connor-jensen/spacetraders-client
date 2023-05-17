@@ -1,6 +1,7 @@
 import { Providers } from "@/components/providers";
 import "./globals.css";
 import Header from "@/components/Header/Header";
+import RadialProgress from "@/components/ui/radialProgress";
 
 export const metadata = {
   title: "Create Next App",
@@ -17,6 +18,9 @@ export default function RootLayout({
       <body>
         <Providers>
           <Header />
+          <div className="fixed top-24 left-0">
+            <RadialProgress seconds={5}/>
+          </div>
           <div className="p-8">
           {children}
           </div>
