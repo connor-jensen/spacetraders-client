@@ -40,7 +40,12 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import ShipCard from "@/components/ShipCard/ShipCard";
-import { useEffect, useState } from "react";
+import {
+  ReactComponentElement,
+  ReactElement,
+  useEffect,
+  useState,
+} from "react";
 import { useCountdown } from "@/hooks/useCountdown";
 
 export default function SystemPage({ params }: { params: { system: string } }) {
@@ -153,80 +158,115 @@ function LocalShipActions({
         </DialogHeader>
         <div className="flex gap-4 flex-col">
           {waypoint.type === "ASTEROID_FIELD" && <MineAction ship={ship} />}
-          <NewCard key={ship.symbol} className="rounded-xl bg-spacegray">
-            <CardHeader>
-              <CardTitle>Dock/Orbit</CardTitle>
-              <CardDescription>
-                Switch between docking and orbiting
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div>Currently docked/orbiting</div>
-            </CardContent>
-            <CardFooter>
-              <Button
-                className="w-full"
-                variant={"secondary"}
-                onClick={() => {
-                  console.log("Ship action clicked");
-                }}
-              >
-                Dock/Orbit
-              </Button>
-            </CardFooter>
-          </NewCard>
-          <NewCard key={ship.symbol} className="rounded-xl bg-spacegray">
-            <CardHeader>
-              <CardTitle>Refuel</CardTitle>
-              <CardDescription>Refuel the ship</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div>Current fuel: ##/## -- do not show this unless docked</div>
-            </CardContent>
-            <CardFooter>
-              <Button
-                className="w-full"
-                variant={"secondary"}
-                onClick={() => {
-                  console.log("Ship action clicked");
-                }}
-              >
-                Refuel
-              </Button>
-            </CardFooter>
-          </NewCard>
+          <RefuelAction ship={ship} />
+          <FlightMode ship={ship} />
         </div>
       </DialogContent>
     </Dialog>
   );
 }
 
-function MineAction({ ship }: { ship: Ship }) {
-  const { mutate: mineResource } = useMine(ship.symbol);
+function FlightMode({ ship }: { ship: Ship }) {
+  // TODO: use orbit endpoint
+  // TODO: use dock endpoint
+  // TODO: don't display this option if the ship can't do either (ex: in transit), or
+  // show that the ship WILL be in orbit upon arrival, but disable the dock option,
+  // and move the timer to be on the button
 
+  // const { mutate: orbit } = useOrbit(ship.symbol);
+  const title = "Flight Mode";
+  const description = "Toggle Orbiting or Docking";
+  const FlightModeDetails = () => (
+    <h3>The ship is currently {ship.nav.flightMode}</h3>
+  );
   return (
-    <NewCard key={ship.symbol} className="rounded-xl bg-spacegray">
+    <ShipAction
+      title={title}
+      description={description}
+      content={<FlightModeDetails />}
+      clickHandler={() => {}}
+    />
+  );
+}
+
+function RefuelAction({ ship }: { ship: Ship }) {
+  // TODO: use refuel endpoint
+  // TODO: use market endpoint to check both the export price (if any) and the exchange price (if any)
+  // TODO: don't display this option if there is no fuel for sale
+
+  // const { mutate: refuel } = useRefuel(ship.symbol);
+  const title = "Refuel";
+  const description = "Refuel for future travel";
+  const FuelDetails = () => (
+    <>
+      <h3>
+        Current fuel: {ship.fuel.current} / {ship.fuel.capacity}
+      </h3>
+      <div>The price of fuel here is: ##</div>
+    </>
+  );
+  return (
+    <ShipAction
+      title={title}
+      description={description}
+      content={<FuelDetails />}
+      clickHandler={() => {}}
+    />
+  );
+}
+
+function MineAction({ ship }: { ship: Ship }) {
+  // TODO: add a scan secondary button (if the ship has the module)
+  const { mutate: mineResource } = useMine(ship.symbol);
+  const title = "Mine";
+  const description = "Mine resources from an Astroid Field";
+  const CargoDetails = () => (
+    <>
+      <h3>{`Cargo: ${ship?.cargo.units} / ${ship.cargo.capacity}`}</h3>
+      {ship.cargo.units > 0 && (
+        <ul className="cardsubsection">
+          {ship.cargo.inventory.map((item) => (
+            <li key={item.name}>{`${item.name}: ${item.units}`}</li>
+          ))}
+        </ul>
+      )}
+    </>
+  );
+  return (
+    <ShipAction
+      title={title}
+      description={description}
+      content={<CargoDetails />}
+      clickHandler={mineResource}
+    />
+  );
+}
+
+function ShipAction({
+  title,
+  description,
+  content,
+  clickHandler,
+}: {
+  title: string;
+  description: string;
+  content: React.ReactNode;
+  clickHandler: Function;
+}) {
+  return (
+    <NewCard className="rounded-xl bg-spacegray">
       <CardHeader>
-        <CardTitle>Mine</CardTitle>
-        <CardDescription>{`Cargo: ${ship?.cargo.units} / ${ship.cargo.capacity}`}</CardDescription>
+        <CardTitle>{title}</CardTitle>
+        <CardDescription>{description}</CardDescription>
       </CardHeader>
-      <CardContent>
-        <h3>{`Cargo: ${ship?.cargo.units} / ${ship.cargo.capacity}`}</h3>
-        {ship.cargo.units > 0 && (
-          <ul className="cardsubsection">
-            {ship.cargo.inventory.map((item) => (
-              <li key={item.name}>{`${item.name}: ${item.units}`}</li>
-            ))}
-          </ul>
-        )}
-      </CardContent>
+      <CardContent>{content}</CardContent>
       <CardFooter>
         <Button
           className="w-full"
           variant={"secondary"}
-          onClick={() => mineResource()}
+          onClick={() => clickHandler()}
         >
-          Mine
+          {title.toUpperCase()}
         </Button>
       </CardFooter>
     </NewCard>
