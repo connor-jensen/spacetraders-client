@@ -106,17 +106,12 @@ function WaypointCard({
           return <li key={trait.symbol}>{trait.name}</li>;
         })}
       </ul>
-      {localShips && localShips.length > 0 && (
-        <ul>
-          {localShips?.map((ship) => (
-            <LocalShipActions
-              key={ship.symbol}
-              ship={ship}
-              waypoint={waypoint}
-            />
-          ))}
-        </ul>
-      )}
+      {localShips &&
+        localShips.length > 0 &&
+        localShips?.map((ship) => (
+          <LocalShipActions key={ship.symbol} ship={ship} waypoint={waypoint} />
+        ))}
+
       <SendShipMenu waypoint={waypoint.symbol} />
     </Card>
   );
@@ -139,7 +134,7 @@ function LocalShipActions({
     <Dialog>
       <DialogTrigger asChild>
         <Button variant={"secondary"} className="bg-goldstar font-bold w-full">
-          {ship.symbol}
+          {ship.registration.role} - {ship.symbol.split("-")[1]}
         </Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-[525px] rounded-2xl p-8 sm:rounded-2xl bg-transparent border-none">
@@ -158,8 +153,8 @@ function LocalShipActions({
         </DialogHeader>
         <div className="flex gap-4 flex-col">
           {waypoint.type === "ASTEROID_FIELD" && <MineAction ship={ship} />}
-          <RefuelAction ship={ship} />
-          <FlightStatus ship={ship} />
+          {ship.nav.status === "DOCKED" && <RefuelAction ship={ship} />}
+          {ship.nav.status !== "IN_TRANSIT" && <FlightStatus ship={ship} />}
         </div>
       </DialogContent>
     </Dialog>
@@ -169,9 +164,6 @@ function LocalShipActions({
 function FlightStatus({ ship }: { ship: Ship }) {
   // TODO: use orbit endpoint
   // TODO: use dock endpoint
-  // TODO: don't display this option if the ship can't do either (ex: in transit), or
-  // show that the ship WILL be in orbit upon arrival, but disable the dock option,
-  // and move the timer to be on the button
 
   // const { mutate: orbit } = useOrbit(ship.symbol);
   const title = "Toggle Flight Mode";
@@ -195,7 +187,7 @@ function FlightStatus({ ship }: { ship: Ship }) {
 function RefuelAction({ ship }: { ship: Ship }) {
   // TODO: use refuel endpoint
   // TODO: use market endpoint to check both the export price (if any) and the exchange price (if any)
-  // TODO: don't display this option if there is no fuel for sale, or if the ship isn't docked
+  // TODO: don't display this option if there is no fuel for sale
 
   // const { mutate: refuel } = useRefuel(ship.symbol);
   const title = "Refuel";
@@ -220,6 +212,8 @@ function RefuelAction({ ship }: { ship: Ship }) {
 
 function MineAction({ ship }: { ship: Ship }) {
   // TODO: add a scan secondary button (if the ship has the module)
+  // TODO: add a cooldown timer
+
   const { mutate: mineResource } = useMine(ship.symbol);
   const title = "Mine";
   const description = "Mine resources from an Astroid Field";
