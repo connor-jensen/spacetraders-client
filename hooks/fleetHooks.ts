@@ -39,11 +39,34 @@ export const usePurchaseShip = (shipType: ShipType, waypointSymbol: string) => {
   });
 };
 
+export const useMine = (shipSymbol: string) => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async () => {
+      const { data } = await fleetApi.extractResources({
+        shipSymbol,
+        extractResourcesRequest: {
+          /* Add survey data here */
+        },
+      });
+      return data;
+    },
+    // we probably shouldn't invalidate ships here, since the response from this endpoint actually returns
+    // everything we need (what minerals were added to the ship and how long the cooldown is)
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["ships"] });
+    },
+  });
+};
+
 export const useNavigateShip = (shipSymbol: string, waypointSymbol: string) => {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async () => {
-      const { data } = await fleetApi.navigateShip({shipSymbol, navigateShipRequest: {waypointSymbol}});
+      const { data } = await fleetApi.navigateShip({
+        shipSymbol,
+        navigateShipRequest: { waypointSymbol },
+      });
       return data;
     },
     onSuccess: () => {

@@ -5,6 +5,7 @@ import {
   CardFooter,
   CardHeader,
   CardTitle,
+  CardDescription,
   Card as NewCard,
 } from "@/components/ui/card";
 import Card from "@/components/Generic/Card";
@@ -18,7 +19,12 @@ import {
 import { useShipyard, useWaypoints } from "@/hooks/systemsHooks";
 import { Ship, ShipRole, ShipType, Waypoint } from "@/spacetraders-sdk/src";
 import { DialogDescription, DialogTitle } from "@radix-ui/react-dialog";
-import { useNavigateShip, usePurchaseShip, useShips } from "@/hooks/fleetHooks";
+import {
+  useMine,
+  useNavigateShip,
+  usePurchaseShip,
+  useShips,
+} from "@/hooks/fleetHooks";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -33,65 +39,247 @@ import {
   DropdownMenuSubTrigger,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import ShipCard from "@/components/ShipCard/ShipCard";
+import {
+  ReactComponentElement,
+  ReactElement,
+  useEffect,
+  useState,
+} from "react";
+import { useCountdown } from "@/hooks/useCountdown";
 
 export default function SystemPage({ params }: { params: { system: string } }) {
   const { data: waypoints, isLoading } = useWaypoints(params.system);
+  const { data: ships, isLoading: shipsIsLoading } = useShips();
 
-  if (!waypoints || isLoading) {
+  if (!waypoints || isLoading || shipsIsLoading) {
     return null;
   }
 
-  console.log(waypoints);
-
   return (
-    <div className="flex justify-center">
-      <div className="grid gap-4 lg:grid-cols-4 lg:max-w-7xl md:grid-cols-2 sm:grid-cols-1">
-        {waypoints.map((waypoint) => (
-          <WaypointCard key={waypoint.symbol} waypoint={waypoint} />
-        ))}
+    <>
+      <h1 className="flex justify-center">System: {params.system}</h1>
+      <div className="flex justify-center">
+        <div className="grid gap-4 lg:grid-cols-4 lg:max-w-7xl md:grid-cols-2 sm:grid-cols-1">
+          {waypoints.map((waypoint) => {
+            return (
+              <WaypointCard
+                key={waypoint.symbol}
+                waypoint={waypoint}
+                ships={ships}
+              />
+            );
+          })}
+        </div>
       </div>
-    </div>
+    </>
   );
 }
 
-function WaypointCard({ waypoint }: { waypoint: Waypoint }) {
+function WaypointCard({
+  waypoint,
+  ships,
+}: {
+  waypoint: Waypoint;
+  ships: Ship[] | undefined;
+}) {
+  const waypointName = waypoint.symbol.split("-")[2] || "Unknown Waypoint";
+  // see if any of the player's ships are at this waypoint
+  const localShips = ships?.filter(
+    (ship) => ship.nav.waypointSymbol === waypoint.symbol
+  );
   return (
     <Card>
-      <h2>{waypoint.symbol}</h2>
+      <h2>
+        {waypointName} ({waypoint.type})
+      </h2>
       <ul>
         {waypoint.traits.map((trait) => {
           if (trait.symbol === "SHIPYARD") {
             return (
               <ShipYardButton
                 key={waypoint.symbol}
-                trait={trait.symbol}
                 waypointSymbol={waypoint.symbol}
               />
             );
-          } else return <li key={trait.symbol}>{trait.name}</li>;
+          }
+          return <li key={trait.symbol}>{trait.name}</li>;
         })}
       </ul>
+      {localShips &&
+        localShips.length > 0 &&
+        localShips?.map((ship) => (
+          <LocalShipActions key={ship.symbol} ship={ship} waypoint={waypoint} />
+        ))}
+
       <SendShipMenu waypoint={waypoint.symbol} />
     </Card>
   );
 }
 
-function ShipYardButton({
-  trait,
-  waypointSymbol,
+function CountdownTimer({ arrivalTime }: { arrivalTime: Date }) {
+  const timeLeft = useCountdown(arrivalTime);
+  return <div>Ship arrives in: {timeLeft}</div>;
+}
+
+function LocalShipActions({
+  ship,
+  waypoint,
 }: {
-  trait: String;
-  waypointSymbol: string;
+  ship: Ship;
+  waypoint: Waypoint;
 }) {
+  console.log(ship);
+  return (
+    <Dialog>
+      <DialogTrigger asChild>
+        <Button variant={"secondary"} className="bg-goldstar font-bold w-full">
+          {ship.registration.role} - {ship.symbol.split("-")[1]}
+        </Button>
+      </DialogTrigger>
+      <DialogContent className="sm:max-w-[525px] rounded-2xl p-8 sm:rounded-2xl bg-popover border-none">
+        <DialogHeader>
+          <DialogTitle>
+            <h2 className="text-lg font-semibold tracking-tight">
+              {ship.symbol} ({ship.registration.role})
+            </h2>
+          </DialogTitle>
+          <DialogDescription>
+            <p className="text-sm text-gray-100">Assign the ship a task</p>
+            {ship.nav.status === "IN_TRANSIT" && (
+              <CountdownTimer arrivalTime={ship.nav.route.arrival} />
+            )}
+          </DialogDescription>
+        </DialogHeader>
+        <div className="flex gap-4 flex-col">
+          {waypoint.type === "ASTEROID_FIELD" && <MineAction ship={ship} />}
+          {ship.nav.status === "DOCKED" && <RefuelAction ship={ship} />}
+          {ship.nav.status !== "IN_TRANSIT" && <FlightStatus ship={ship} />}
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+function FlightStatus({ ship }: { ship: Ship }) {
+  // TODO: use orbit endpoint
+  // TODO: use dock endpoint
+
+  // const { mutate: orbit } = useOrbit(ship.symbol);
+  const title = "Toggle Flight Mode";
+  const description = "Toggle Orbiting or Docking";
+  const FlightStatusDetails = () => (
+    <h3>
+      The ship is currently{" "}
+      {ship.nav.status === "IN_ORBIT" ? "in orbit" : "docked"}.
+    </h3>
+  );
+  return (
+    <ShipAction
+      title={title}
+      description={description}
+      content={<FlightStatusDetails />}
+      clickHandler={() => {}}
+    />
+  );
+}
+
+function RefuelAction({ ship }: { ship: Ship }) {
+  // TODO: use refuel endpoint
+  // TODO: use market endpoint to check both the export price (if any) and the exchange price (if any)
+  // TODO: don't display this option if there is no fuel for sale
+
+  // const { mutate: refuel } = useRefuel(ship.symbol);
+  const title = "Refuel";
+  const description = "Refuel for future travel";
+  const FuelDetails = () => (
+    <>
+      <h3>
+        Current fuel: {ship.fuel.current} / {ship.fuel.capacity}
+      </h3>
+      <div>The price of fuel here is: ##</div>
+    </>
+  );
+  return (
+    <ShipAction
+      title={title}
+      description={description}
+      content={<FuelDetails />}
+      clickHandler={() => {}}
+    />
+  );
+}
+
+function MineAction({ ship }: { ship: Ship }) {
+  // TODO: add a scan secondary button (if the ship has the module)
+  // TODO: add a cooldown timer
+
+  const { mutate: mineResource } = useMine(ship.symbol);
+  const title = "Mine";
+  const description = "Mine resources from an Astroid Field";
+  const CargoDetails = () => (
+    <>
+      <h3>{`Cargo: ${ship?.cargo.units} / ${ship.cargo.capacity}`}</h3>
+      {ship.cargo.units > 0 && (
+        <ul className="cardsubsection">
+          {ship.cargo.inventory.map((item) => (
+            <li key={item.name}>{`${item.name}: ${item.units}`}</li>
+          ))}
+        </ul>
+      )}
+    </>
+  );
+  return (
+    <ShipAction
+      title={title}
+      description={description}
+      content={<CargoDetails />}
+      clickHandler={mineResource}
+    />
+  );
+}
+
+function ShipAction({
+  title,
+  description,
+  content,
+  clickHandler,
+}: {
+  title: string;
+  description: string;
+  content: React.ReactNode;
+  clickHandler: Function;
+}) {
+  return (
+    <NewCard className="rounded-xl bg-spacegray">
+      <CardHeader>
+        <CardTitle>{title}</CardTitle>
+        <CardDescription>{description}</CardDescription>
+      </CardHeader>
+      <CardContent>{content}</CardContent>
+      <CardFooter>
+        <Button
+          className="w-full"
+          variant={"secondary"}
+          onClick={() => clickHandler()}
+        >
+          {title.toUpperCase()}
+        </Button>
+      </CardFooter>
+    </NewCard>
+  );
+}
+
+function ShipYardButton({ waypointSymbol }: { waypointSymbol: string }) {
   const { data: shipyardData } = useShipyard(waypointSymbol);
   return (
     <Dialog>
       <DialogTrigger asChild>
         <Button variant={"secondary"} className="bg-goldstar font-bold w-full">
-          {trait}
+          SHIPYARD
         </Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[525px] rounded-2xl p-8 sm:rounded-2xl bg-transparent border-none">
+      <DialogContent className="sm:max-w-[525px] rounded-2xl p-8 sm:rounded-2xl bg-popover border-none">
         <DialogHeader>
           <DialogTitle>
             <h2 className="text-lg font-semibold tracking-tight">Shipyard</h2>
@@ -194,9 +382,27 @@ function SendShipMenu({ waypoint }: { waypoint: string }) {
         <Button variant="outline">Send Ship</Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent className="w-56">
-        <SendShipGroup shipGroup={command} groupName="COMMAND" destinationWaypoint={waypoint} />
-        <SendShipGroup shipGroup={surveyors} groupName="SURVEYOR" destinationWaypoint={waypoint}/>
-        <SendShipGroup shipGroup={excavators} groupName="EXCAVATOR" destinationWaypoint={waypoint}/>
+        {command.length > 0 && (
+          <SendShipGroup
+            shipGroup={command}
+            groupName="COMMAND"
+            destinationWaypoint={waypoint}
+          />
+        )}
+        {surveyors.length > 0 && (
+          <SendShipGroup
+            shipGroup={surveyors}
+            groupName="SURVEYOR"
+            destinationWaypoint={waypoint}
+          />
+        )}
+        {excavators.length > 0 && (
+          <SendShipGroup
+            shipGroup={excavators}
+            groupName="EXCAVATOR"
+            destinationWaypoint={waypoint}
+          />
+        )}
       </DropdownMenuContent>
     </DropdownMenu>
   );
@@ -209,7 +415,7 @@ function SendShipGroup({
 }: {
   shipGroup: Ship[];
   groupName: ShipRole;
-  destinationWaypoint: string
+  destinationWaypoint: string;
 }) {
   return (
     <DropdownMenuGroup>
@@ -221,7 +427,11 @@ function SendShipGroup({
           <DropdownMenuSubContent>
             {shipGroup.length > 0 &&
               shipGroup.map((ship) => (
-                <SendShipItem key={ship.symbol} ship={ship} destinationWaypoint={destinationWaypoint}/>
+                <SendShipItem
+                  key={ship.symbol}
+                  ship={ship}
+                  destinationWaypoint={destinationWaypoint}
+                />
               ))}
           </DropdownMenuSubContent>
         </DropdownMenuPortal>

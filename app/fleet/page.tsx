@@ -1,11 +1,10 @@
-"use client"
+"use client";
 
 import ShipCard from "@/components/ShipCard/ShipCard";
 import { useShips } from "@/hooks/fleetHooks";
 
 export default function FleetInfo() {
-
-  const { data: ships, isLoading } = useShips() 
+  const { data: ships, isLoading } = useShips();
 
   if (isLoading) {
     return null;
@@ -13,7 +12,9 @@ export default function FleetInfo() {
 
   return (
     <>
-    {ships?.map(ship => <ShipCard key={ship.symbol} ship={ship}/>)}
+      {ships?.map((ship) => (
+        <ShipCard key={ship.symbol} ship={ship} />
+      ))}
     </>
-  )
+  );
 }

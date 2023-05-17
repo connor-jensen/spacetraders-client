@@ -1,11 +1,13 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
-@import url('https://fonts.googleapis.com/css2?family=Exo:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap');
+@import url("https://fonts.googleapis.com/css2?family=Exo:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap");
 /*
   1. Use a more-intuitive box-sizing model.
 */
-*, *::before, *::after {
+*,
+*::before,
+*::after {
   box-sizing: border-box;
 }
 /*
@@ -17,9 +19,12 @@
 /*
   3. Allow percentage-based heights in the application
 */
-html, body, #__next, #__root {
+html,
+body,
+#__next,
+#__root {
   height: 100%;
-  font-family: 'Exo', sans-serif;
+  font-family: "Exo", sans-serif;
 }
 /*
   Typographic tweaks!
@@ -33,48 +38,69 @@ body {
 /*
   6. Improve media defaults
 */
-img, picture, video, canvas, svg {
+img,
+picture,
+video,
+canvas,
+svg {
   display: block;
   max-width: 100%;
 }
 /*
   7. Remove built-in form typography styles
 */
-input, button, textarea, select {
+input,
+button,
+textarea,
+select {
   font: inherit;
 }
 /*
   8. Avoid text overflows
 */
-p, h1, h2, h3, h4, h5, h6 {
+p,
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
   overflow-wrap: break-word;
 }
 /*
   9. Create a root stacking context
 */
-#root, #__next {
+#root,
+#__next {
   isolation: isolate;
 }
 
 .shadow-high {
   /* box-shadow: -5px 40px 30px -10px rgba(0, 0, 0, 0.9); */
-  box-shadow: -10px 30px 30px -15px rgba(0, 0, 0, 0.7)
+  box-shadow: -10px 30px 30px -15px rgba(0, 0, 0, 0.7);
 }
 
 .spacegradient {
   background-image: linear-gradient(
-  90deg,
-  hsl(248deg 11% 13%) 0%,
-  hsl(247deg 11% 13%) 4%,
-  hsl(246deg 11% 13%) 9%,
-  hsl(245deg 10% 14%) 18%,
-  hsl(244deg 10% 15%) 34%,
-  hsl(243deg 10% 15%) 61%,
-  hsl(242deg 9% 15%) 78%,
-  hsl(242deg 9% 16%) 88%,
-  hsl(241deg 9% 16%) 95%,
-  hsl(240deg 9% 16%) 100%
-);
+    90deg,
+    hsl(248deg 11% 12%) 0%,
+    hsl(247deg 11% 13%) 4%,
+    hsl(246deg 11% 13%) 9%,
+    hsl(245deg 10% 14%) 18%,
+    hsl(244deg 10% 14%) 34%,
+    hsl(243deg 10% 14%) 61%,
+    hsl(242deg 9% 14%) 78%,
+    hsl(242deg 9% 15%) 88%,
+    hsl(241deg 9% 15%) 95%,
+    hsl(240deg 9% 16%) 100%
+  );
+}
+
+.cardsubsection {
+  margin-left: 20px;
+  margin-top: 5px;
+  margin-bottom: 5px;
+  gap: 0rem;
 }
 
 .text-default {
@@ -90,7 +116,7 @@ p, h1, h2, h3, h4, h5, h6 {
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
- 
+
 /* @layer base {
   :root {
     --background: 224 71% 4%;
@@ -133,22 +159,21 @@ p, h1, h2, h3, h4, h5, h6 {
     --foreground: 268 3% 83%;
     /* --foreground: 238 15% 91%; */
 
- 
     --muted: 248 13% 11%;
     --muted-foreground: 270.4 4% 56.9%;
- 
+
     --popover: 249 12% 7%;
     --popover-foreground: 270 5% 65.1%;
- 
+
     --card: 249 12% 4%;
     --card-foreground: 268 5% 91%;
- 
+
     --border: 241 8% 17%;
     --input: 241 8% 17%;
- 
+
     --primary: 235 15% 88%;
     --primary-foreground: 277.2 12% 1.2%;
- 
+
     /* --secondary: 247.2 12% 11.2%;
     --secondary-foreground: 235 20% 98%; */
     /*  hsl(32,90%,75%) */
@@ -157,17 +182,16 @@ p, h1, h2, h3, h4, h5, h6 {
 
     --accent: 241 8% 17%;
     --accent-foreground: 265 10% 98%;
- 
+
     --destructive: 0 63% 31%;
     --destructive-foreground: 265 20% 98%;
- 
+
     --ring: 241 17% 17%;
- 
+
     --radius: 0.5rem;
   }
-
 }
- 
+
 @layer base {
   * {
     @apply border-border;
