@@ -83,15 +83,15 @@ h6 {
 .spacegradient {
   background-image: linear-gradient(
     90deg,
-    hsl(248deg 11% 13%) 0%,
+    hsl(248deg 11% 12%) 0%,
     hsl(247deg 11% 13%) 4%,
     hsl(246deg 11% 13%) 9%,
     hsl(245deg 10% 14%) 18%,
-    hsl(244deg 10% 15%) 34%,
-    hsl(243deg 10% 15%) 61%,
-    hsl(242deg 9% 15%) 78%,
-    hsl(242deg 9% 16%) 88%,
-    hsl(241deg 9% 16%) 95%,
+    hsl(244deg 10% 14%) 34%,
+    hsl(243deg 10% 14%) 61%,
+    hsl(242deg 9% 14%) 78%,
+    hsl(242deg 9% 15%) 88%,
+    hsl(241deg 9% 15%) 95%,
     hsl(240deg 9% 16%) 100%
   );
 }

@@ -137,7 +137,7 @@ function LocalShipActions({
           {ship.registration.role} - {ship.symbol.split("-")[1]}
         </Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[525px] rounded-2xl p-8 sm:rounded-2xl bg-transparent border-none">
+      <DialogContent className="sm:max-w-[525px] rounded-2xl p-8 sm:rounded-2xl bg-popover border-none">
         <DialogHeader>
           <DialogTitle>
             <h2 className="text-lg font-semibold tracking-tight">
@@ -279,7 +279,7 @@ function ShipYardButton({ waypointSymbol }: { waypointSymbol: string }) {
           SHIPYARD
         </Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[525px] rounded-2xl p-8 sm:rounded-2xl bg-transparent border-none">
+      <DialogContent className="sm:max-w-[525px] rounded-2xl p-8 sm:rounded-2xl bg-popover border-none">
         <DialogHeader>
           <DialogTitle>
             <h2 className="text-lg font-semibold tracking-tight">Shipyard</h2>
