@@ -19,7 +19,12 @@ import {
 import { useShipyard, useWaypoints } from "@/hooks/systemsHooks";
 import { Ship, ShipRole, ShipType, Waypoint } from "@/spacetraders-sdk/src";
 import { DialogDescription, DialogTitle } from "@radix-ui/react-dialog";
-import { useNavigateShip, usePurchaseShip, useShips } from "@/hooks/fleetHooks";
+import {
+  useMine,
+  useNavigateShip,
+  usePurchaseShip,
+  useShips,
+} from "@/hooks/fleetHooks";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -99,7 +104,11 @@ function WaypointCard({
       {localShips && localShips.length > 0 && (
         <ul>
           {localShips?.map((ship) => (
-            <ShipButton key={ship.symbol} ship={ship} waypoint={waypoint} />
+            <LocalShipActions
+              key={ship.symbol}
+              ship={ship}
+              waypoint={waypoint}
+            />
           ))}
         </ul>
       )}
@@ -113,7 +122,13 @@ function CountdownTimer({ arrivalTime }: { arrivalTime: Date }) {
   return <div>Ship arrives in: {timeLeft}</div>;
 }
 
-function ShipButton({ ship, waypoint }: { ship: Ship; waypoint: Waypoint }) {
+function LocalShipActions({
+  ship,
+  waypoint,
+}: {
+  ship: Ship;
+  waypoint: Waypoint;
+}) {
   console.log(ship);
   return (
     <Dialog>
@@ -137,28 +152,7 @@ function ShipButton({ ship, waypoint }: { ship: Ship; waypoint: Waypoint }) {
           </DialogDescription>
         </DialogHeader>
         <div className="flex gap-4 flex-col">
-          {waypoint.type === "ASTEROID_FIELD" && (
-            <NewCard key={ship.symbol} className="rounded-xl bg-spacegray">
-              <CardHeader>
-                <CardTitle>Mine</CardTitle>
-                <CardDescription>{`Cargo: ${ship?.cargo.units} / ${ship.cargo.capacity}`}</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div>List the kind of minerals available at this location</div>
-              </CardContent>
-              <CardFooter>
-                <Button
-                  className="w-full"
-                  variant={"secondary"}
-                  onClick={() => {
-                    console.log("Ship action clicked");
-                  }}
-                >
-                  Mine
-                </Button>
-              </CardFooter>
-            </NewCard>
-          )}
+          {waypoint.type === "ASTEROID_FIELD" && <MineAction ship={ship} />}
           <NewCard key={ship.symbol} className="rounded-xl bg-spacegray">
             <CardHeader>
               <CardTitle>Dock/Orbit</CardTitle>
@@ -204,6 +198,38 @@ function ShipButton({ ship, waypoint }: { ship: Ship; waypoint: Waypoint }) {
         </div>
       </DialogContent>
     </Dialog>
+  );
+}
+
+function MineAction({ ship }: { ship: Ship }) {
+  const { mutate: mineResource } = useMine(ship.symbol);
+
+  return (
+    <NewCard key={ship.symbol} className="rounded-xl bg-spacegray">
+      <CardHeader>
+        <CardTitle>Mine</CardTitle>
+        <CardDescription>{`Cargo: ${ship?.cargo.units} / ${ship.cargo.capacity}`}</CardDescription>
+      </CardHeader>
+      <CardContent>
+        <h3>{`Cargo: ${ship?.cargo.units} / ${ship.cargo.capacity}`}</h3>
+        {ship.cargo.units > 0 && (
+          <ul className="cardsubsection">
+            {ship.cargo.inventory.map((item) => (
+              <li key={item.name}>{`${item.name}: ${item.units}`}</li>
+            ))}
+          </ul>
+        )}
+      </CardContent>
+      <CardFooter>
+        <Button
+          className="w-full"
+          variant={"secondary"}
+          onClick={() => mineResource()}
+        >
+          Mine
+        </Button>
+      </CardFooter>
+    </NewCard>
   );
 }
 
