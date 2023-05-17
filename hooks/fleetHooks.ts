@@ -74,3 +74,48 @@ export const useNavigateShip = (shipSymbol: string, waypointSymbol: string) => {
     },
   });
 };
+
+export const useDockShip = (shipSymbol: string) => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async () => {
+      const { data } = await fleetApi.dockShip({
+        shipSymbol,
+      });
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["ships"] });
+    },
+  });
+}
+
+export const useOrbitShip = (shipSymbol: string) => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async () => {
+      const { data } = await fleetApi.orbitShip({
+        shipSymbol,
+      });
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["ships"] });
+    },
+  });
+}
+
+export const useRefuelShip = (shipSymbol: string) => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async () => {
+      const { data } = await fleetApi.refuelShip({
+        shipSymbol,
+      });
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["ships", "agent"] });
+    },
+  });
+}

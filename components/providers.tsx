@@ -1,6 +1,7 @@
 "use client";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { useState, createContext, useContext } from "react";
+import { ReactQueryDevtools } from '@tanstack/react-query-devtools'
 
 const queryClient = new QueryClient();
 
@@ -24,6 +25,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
       <TimersContext.Provider value={{times, changeTimes}}>
         {children}
       </TimersContext.Provider>
+      <ReactQueryDevtools initialIsOpen={false} />
     </QueryClientProvider>
   );
 }

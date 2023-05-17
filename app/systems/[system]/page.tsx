@@ -16,13 +16,16 @@ import {
   DialogHeader,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { useShipyard, useWaypoints } from "@/hooks/systemsHooks";
+import { useFuelPrice, useShipyard, useWaypoints } from "@/hooks/systemsHooks";
 import { Ship, ShipRole, ShipType, Waypoint } from "@/spacetraders-sdk/src";
 import { DialogDescription, DialogTitle } from "@radix-ui/react-dialog";
 import {
+  useDockShip,
   useMine,
   useNavigateShip,
+  useOrbitShip,
   usePurchaseShip,
+  useRefuelShip,
   useShips,
 } from "@/hooks/fleetHooks";
 import {
@@ -39,13 +42,6 @@ import {
   DropdownMenuSubTrigger,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import ShipCard from "@/components/ShipCard/ShipCard";
-import {
-  ReactComponentElement,
-  ReactElement,
-  useEffect,
-  useState,
-} from "react";
 import { useCountdown } from "@/hooks/useCountdown";
 
 export default function SystemPage({ params }: { params: { system: string } }) {
@@ -58,18 +54,20 @@ export default function SystemPage({ params }: { params: { system: string } }) {
 
   return (
     <>
-      <h1 className="flex justify-center">System: {params.system}</h1>
       <div className="flex justify-center">
-        <div className="grid gap-4 lg:grid-cols-4 lg:max-w-7xl md:grid-cols-2 sm:grid-cols-1">
-          {waypoints.map((waypoint) => {
-            return (
-              <WaypointCard
-                key={waypoint.symbol}
-                waypoint={waypoint}
-                ships={ships}
-              />
-            );
-          })}
+        <div>
+          <h1 className="text-2xl text-secondary ml-6">System {params.system}</h1>
+          <div className="grid gap-4 lg:grid-cols-4 lg:max-w-7xl md:grid-cols-2 sm:grid-cols-1">
+            {waypoints.map((waypoint) => {
+              return (
+                <WaypointCard
+                  key={waypoint.symbol}
+                  waypoint={waypoint}
+                  ships={ships}
+                />
+              );
+            })}
+          </div>
         </div>
       </div>
     </>
@@ -90,8 +88,9 @@ function WaypointCard({
   );
   return (
     <Card>
-      <h2>
-        {waypointName} ({waypoint.type})
+      <h2 className="flex justify-between items-baseline flex-wrap gap-1">
+        {waypoint.type.replaceAll("_", " ")}{" "}
+        <span className="text-muted-foreground text-sm">{waypointName}</span>
       </h2>
       <ul>
         {waypoint.traits.map((trait) => {
@@ -133,7 +132,7 @@ function LocalShipActions({
   return (
     <Dialog>
       <DialogTrigger asChild>
-        <Button variant={"secondary"} className="bg-goldstar font-bold w-full">
+        <Button variant={"secondary"} className="bg-secondary font-bold w-full">
           {ship.registration.role} - {ship.symbol.split("-")[1]}
         </Button>
       </DialogTrigger>
@@ -163,6 +162,17 @@ function LocalShipActions({
 
 function FlightStatus({ ship }: { ship: Ship }) {
   // TODO: use orbit endpoint
+  const { mutate: dockShip } = useDockShip(ship.symbol);
+  const { mutate: orbitShip } = useOrbitShip(ship.symbol);
+
+  const toggleDockedOrOrbit = () => {
+    if (ship.nav.status === "IN_ORBIT") {
+      dockShip();
+    } else if (ship.nav.status === "DOCKED") {
+      orbitShip();
+    }
+  };
+
   // TODO: use dock endpoint
 
   // const { mutate: orbit } = useOrbit(ship.symbol);
@@ -179,7 +189,7 @@ function FlightStatus({ ship }: { ship: Ship }) {
       title={title}
       description={description}
       content={<FlightStatusDetails />}
-      clickHandler={() => {}}
+      clickHandler={toggleDockedOrOrbit}
     />
   );
 }
@@ -187,6 +197,13 @@ function FlightStatus({ ship }: { ship: Ship }) {
 function RefuelAction({ ship }: { ship: Ship }) {
   // TODO: use refuel endpoint
   // TODO: use market endpoint to check both the export price (if any) and the exchange price (if any)
+  const { mutate: refuelShip} = useRefuelShip(ship.symbol)
+  const fuelPrice = useFuelPrice(ship.nav.waypointSymbol);
+  if (!fuelPrice) {
+    return null;
+  }
+  const fuelNeeded = ship.fuel.capacity - ship.fuel.current;
+  const priceToRefuel = Math.ceil(fuelNeeded / 100) * fuelPrice;
   // TODO: don't display this option if there is no fuel for sale
 
   // const { mutate: refuel } = useRefuel(ship.symbol);
@@ -197,7 +214,7 @@ function RefuelAction({ ship }: { ship: Ship }) {
       <h3>
         Current fuel: {ship.fuel.current} / {ship.fuel.capacity}
       </h3>
-      <div>The price of fuel here is: ##</div>
+      {fuelPrice && <div>Price to refuel: {priceToRefuel}</div>}
     </>
   );
   return (
@@ -205,7 +222,7 @@ function RefuelAction({ ship }: { ship: Ship }) {
       title={title}
       description={description}
       content={<FuelDetails />}
-      clickHandler={() => {}}
+      clickHandler={refuelShip}
     />
   );
 }
@@ -275,7 +292,7 @@ function ShipYardButton({ waypointSymbol }: { waypointSymbol: string }) {
   return (
     <Dialog>
       <DialogTrigger asChild>
-        <Button variant={"secondary"} className="bg-goldstar font-bold w-full">
+        <Button variant={"secondary"} className="font-bold w-full">
           SHIPYARD
         </Button>
       </DialogTrigger>

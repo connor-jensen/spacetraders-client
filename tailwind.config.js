@@ -16,7 +16,6 @@ module.exports = {
       colors: {
         spacegray: "rgb(40, 40, 47)",
         violetgray: "hsl(270deg, 3%, 80%)",
-        goldstar: "hsl(32,90%,75%)",
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",
         ring: "hsl(var(--ring))",
