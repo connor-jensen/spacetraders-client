@@ -221,7 +221,7 @@ function SendShipGroup({
           <DropdownMenuSubContent>
             {shipGroup.length > 0 &&
               shipGroup.map((ship) => (
-                <SendShipItem ship={ship} destinationWaypoint={destinationWaypoint}/>
+                <SendShipItem key={ship.symbol} ship={ship} destinationWaypoint={destinationWaypoint}/>
               ))}
           </DropdownMenuSubContent>
         </DropdownMenuPortal>

@@ -81,6 +81,12 @@ p, h1, h2, h3, h4, h5, h6 {
   color: hsl(270deg, 3%, 80%);
 }
 
+.conic-progress {
+  /* background: conic-gradient(hsl(--foreground) 216deg hsl(--background) 0deg); */
+  background: conic-gradient(hsl(var(--secondary)) var(--progress), hsl(var(--background)) 0deg);;
+
+}
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
