@@ -159,14 +159,14 @@ function LocalShipActions({
         <div className="flex gap-4 flex-col">
           {waypoint.type === "ASTEROID_FIELD" && <MineAction ship={ship} />}
           <RefuelAction ship={ship} />
-          <FlightMode ship={ship} />
+          <FlightStatus ship={ship} />
         </div>
       </DialogContent>
     </Dialog>
   );
 }
 
-function FlightMode({ ship }: { ship: Ship }) {
+function FlightStatus({ ship }: { ship: Ship }) {
   // TODO: use orbit endpoint
   // TODO: use dock endpoint
   // TODO: don't display this option if the ship can't do either (ex: in transit), or
@@ -174,16 +174,19 @@ function FlightMode({ ship }: { ship: Ship }) {
   // and move the timer to be on the button
 
   // const { mutate: orbit } = useOrbit(ship.symbol);
-  const title = "Flight Mode";
+  const title = "Toggle Flight Mode";
   const description = "Toggle Orbiting or Docking";
-  const FlightModeDetails = () => (
-    <h3>The ship is currently {ship.nav.flightMode}</h3>
+  const FlightStatusDetails = () => (
+    <h3>
+      The ship is currently{" "}
+      {ship.nav.status === "IN_ORBIT" ? "in orbit" : "docked"}.
+    </h3>
   );
   return (
     <ShipAction
       title={title}
       description={description}
-      content={<FlightModeDetails />}
+      content={<FlightStatusDetails />}
       clickHandler={() => {}}
     />
   );
@@ -192,7 +195,7 @@ function FlightMode({ ship }: { ship: Ship }) {
 function RefuelAction({ ship }: { ship: Ship }) {
   // TODO: use refuel endpoint
   // TODO: use market endpoint to check both the export price (if any) and the exchange price (if any)
-  // TODO: don't display this option if there is no fuel for sale
+  // TODO: don't display this option if there is no fuel for sale, or if the ship isn't docked
 
   // const { mutate: refuel } = useRefuel(ship.symbol);
   const title = "Refuel";
