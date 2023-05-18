@@ -12,6 +12,7 @@ module.exports = {
         "2xl": "1400px",
       },
     },
+    colors: {},
     extend: {
       colors: {
         spacegray: "rgb(40, 40, 47)",

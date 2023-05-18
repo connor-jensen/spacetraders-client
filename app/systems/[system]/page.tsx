@@ -43,6 +43,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useCountdown } from "@/hooks/useCountdown";
+import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 
 export default function SystemPage({ params }: { params: { system: string } }) {
   const { data: waypoints, isLoading } = useWaypoints(params.system);
@@ -56,7 +57,9 @@ export default function SystemPage({ params }: { params: { system: string } }) {
     <>
       <div className="flex justify-center">
         <div>
-          <h1 className="text-2xl text-secondary ml-6">System {params.system}</h1>
+          <h1 className="text-2xl text-secondary ml-6">
+            System {params.system}
+          </h1>
           <div className="grid gap-4 lg:grid-cols-4 lg:max-w-7xl md:grid-cols-2 sm:grid-cols-1">
             {waypoints.map((waypoint) => {
               return (
@@ -136,9 +139,9 @@ function LocalShipActions({
           {ship.registration.role} - {ship.symbol.split("-")[1]}
         </Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[525px] rounded-2xl p-8 sm:rounded-2xl bg-popover border-none">
-        <DialogHeader>
-          <DialogTitle>
+      <DialogContent className="sm:max-w-[525px] rounded-2xl p-4 sm:rounded-2xl bg-popover border-none h-3/4">
+        <DialogHeader className="px-4 py-1">
+          <DialogTitle >
             <h2 className="text-lg font-semibold tracking-tight">
               {ship.symbol} ({ship.registration.role})
             </h2>
@@ -150,11 +153,13 @@ function LocalShipActions({
             )}
           </DialogDescription>
         </DialogHeader>
-        <div className="flex gap-4 flex-col">
-          {waypoint.type === "ASTEROID_FIELD" && <MineAction ship={ship} />}
-          {ship.nav.status === "DOCKED" && <RefuelAction ship={ship} />}
-          {ship.nav.status !== "IN_TRANSIT" && <FlightStatus ship={ship} />}
-        </div>
+        <ScrollArea className="px-4">
+          <div className="flex gap-5 flex-col px-4">
+            {waypoint.type === "ASTEROID_FIELD" && <MineAction ship={ship} />}
+            {ship.nav.status === "DOCKED" && <RefuelAction ship={ship} />}
+            {ship.nav.status !== "IN_TRANSIT" && <FlightStatus ship={ship} />}
+          </div>
+        </ScrollArea>
       </DialogContent>
     </Dialog>
   );
@@ -197,7 +202,7 @@ function FlightStatus({ ship }: { ship: Ship }) {
 function RefuelAction({ ship }: { ship: Ship }) {
   // TODO: use refuel endpoint
   // TODO: use market endpoint to check both the export price (if any) and the exchange price (if any)
-  const { mutate: refuelShip} = useRefuelShip(ship.symbol)
+  const { mutate: refuelShip } = useRefuelShip(ship.symbol);
   const fuelPrice = useFuelPrice(ship.nav.waypointSymbol);
   if (!fuelPrice) {
     return null;
@@ -240,7 +245,7 @@ function MineAction({ ship }: { ship: Ship }) {
       {ship.cargo.units > 0 && (
         <ul className="cardsubsection">
           {ship.cargo.inventory.map((item) => (
-            <li key={item.name}>{`${item.name}: ${item.units}`}</li>
+            <li  className="text-violetgray" key={item.name}><span  className="font-bold mr-1">{item.units}</span>{` ${item.name}`}</li>
           ))}
         </ul>
       )}
@@ -270,7 +275,7 @@ function ShipAction({
   return (
     <NewCard className="rounded-xl bg-spacegray">
       <CardHeader>
-        <CardTitle>{title}</CardTitle>
+        <CardTitle className="text-violetgray">{title}</CardTitle>
         <CardDescription>{description}</CardDescription>
       </CardHeader>
       <CardContent>{content}</CardContent>
@@ -296,8 +301,8 @@ function ShipYardButton({ waypointSymbol }: { waypointSymbol: string }) {
           SHIPYARD
         </Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[525px] rounded-2xl p-8 sm:rounded-2xl bg-popover border-none">
-        <DialogHeader>
+      <DialogContent className="sm:max-w-[525px] rounded-2xl p-4 sm:rounded-2xl bg-popover border-none h-4/5">
+        <DialogHeader className="p-4">
           <DialogTitle>
             <h2 className="text-lg font-semibold tracking-tight">Shipyard</h2>
           </DialogTitle>
@@ -307,52 +312,54 @@ function ShipYardButton({ waypointSymbol }: { waypointSymbol: string }) {
             </p>
           </DialogDescription>
         </DialogHeader>
-        {shipyardData?.ships && (
-          <div className="flex gap-4 flex-col">
-            {shipyardData.ships.map((ship) => (
-              <NewCard key={ship.type} className="rounded-xl bg-spacegray">
-                <CardHeader>
-                  <CardTitle>{ship.name}</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="flex justify-evenly">
-                    <div>
-                      <div className="font-medium -ml-2 text-white">
-                        Mounts:
-                      </div>
-                      {ship.mounts.map((mount) => (
-                        <div
-                          key={mount.symbol}
-                          className="text-sm text-gray-100"
-                        >
-                          {mount.name}
+        <ScrollArea className="px-4">
+          {shipyardData?.ships && (
+            <div className="flex gap-5 flex-col px-4">
+              {shipyardData.ships.map((ship) => (
+                <NewCard key={ship.type} className="rounded-xl bg-spacegray">
+                  <CardHeader>
+                    <CardTitle>{ship.name}</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="flex justify-evenly text-violetgray">
+                      <div>
+                        <div className="font-medium -ml-2 text-violetgray">
+                          Mounts:
                         </div>
-                      ))}
-                    </div>
-                    <div>
-                      <div className="font-medium -ml-2 text-white ">
-                        Engine:
+                        {ship.mounts.map((mount) => (
+                          <div
+                            key={mount.symbol}
+                            className="text-sm text-primary"
+                          >
+                            {mount.name}
+                          </div>
+                        ))}
                       </div>
-                      <div className="text-gray-100">{ship.engine.name}</div>
-                    </div>
-                    <div>
-                      <div className="font-medium -ml-2 text-white ">
-                        Price:
+                      <div>
+                        <div className="font-medium -ml-2 text-violetgray ">
+                          Engine:
+                        </div>
+                        <div className="text-gray-100">{ship.engine.name}</div>
                       </div>
-                      <div className="text-gray-100">{ship.purchasePrice}</div>
+                      <div>
+                        <div className="font-medium -ml-2 text-violetgray ">
+                          Price:
+                        </div>
+                        <div className="">{ship.purchasePrice}</div>
+                      </div>
                     </div>
-                  </div>
-                </CardContent>
-                <CardFooter>
-                  <PurchaseShipButton
-                    shipType={ship.type!}
-                    waypoint={shipyardData.symbol}
-                  />
-                </CardFooter>
-              </NewCard>
-            ))}
-          </div>
-        )}
+                  </CardContent>
+                  <CardFooter>
+                    <PurchaseShipButton
+                      shipType={ship.type!}
+                      waypoint={shipyardData.symbol}
+                    />
+                  </CardFooter>
+                </NewCard>
+              ))}
+            </div>
+          )}
+        </ScrollArea>
       </DialogContent>
     </Dialog>
   );
