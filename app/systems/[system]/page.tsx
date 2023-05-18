@@ -53,6 +53,15 @@ export default function SystemPage({ params }: { params: { system: string } }) {
     return null;
   }
 
+  const sortedWaypoints = waypoints.sort((a,b) => {
+    if (a.type > b.type) return 1
+    else if (b.type < a.type) return -1
+    else if (a.type === b.type) {
+      return a.symbol > b.symbol ? 1 : -1
+    }
+    else return -1
+  })
+
   return (
     <>
       <div className="flex justify-center">
@@ -60,8 +69,8 @@ export default function SystemPage({ params }: { params: { system: string } }) {
           <h1 className="text-2xl text-secondary ml-6">
             System {params.system}
           </h1>
-          <div className="grid gap-4 lg:grid-cols-4 lg:max-w-7xl md:grid-cols-2 sm:grid-cols-1">
-            {waypoints.map((waypoint) => {
+          <div className="grid gap-4 lg:grid-cols-4 lg:max-w-screen-xl md:grid-cols-2 sm:grid-cols-1">
+            {sortedWaypoints.map((waypoint) => {
               return (
                 <WaypointCard
                   key={waypoint.symbol}
@@ -91,9 +100,9 @@ function WaypointCard({
   );
   return (
     <Card>
-      <h2 className="flex justify-between items-baseline flex-wrap gap-1">
+      <h2 className="flex justify-between items-baseline flex-wrap gap-1 font-bold tracking-widest">
         {waypoint.type.replaceAll("_", " ")}{" "}
-        <span className="text-muted-foreground text-sm">{waypointName}</span>
+        <span className="text-muted-foreground text-sm tracking-normal">{waypointName}</span>
       </h2>
       <ul>
         {waypoint.traits.map((trait) => {
@@ -105,7 +114,7 @@ function WaypointCard({
               />
             );
           }
-          return <li key={trait.symbol}>{trait.name}</li>;
+          return <li className="text-violetgray/90" key={trait.symbol}>{trait.name}</li>;
         })}
       </ul>
       {localShips &&
@@ -139,7 +148,7 @@ function LocalShipActions({
           {ship.registration.role} - {ship.symbol.split("-")[1]}
         </Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[525px] rounded-2xl p-4 sm:rounded-2xl bg-popover border-none h-3/4">
+      <DialogContent className="sm:max-w-[525px] rounded-2xl p-4 sm:rounded-2xl bg-popover border-none max-h-3/4">
         <DialogHeader className="px-4 py-1">
           <DialogTitle >
             <h2 className="text-lg font-semibold tracking-tight">
@@ -301,7 +310,7 @@ function ShipYardButton({ waypointSymbol }: { waypointSymbol: string }) {
           SHIPYARD
         </Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[525px] rounded-2xl p-4 sm:rounded-2xl bg-popover border-none h-4/5">
+      <DialogContent className="sm:max-w-[525px] rounded-2xl p-4 sm:rounded-2xl bg-popover border-none max-h-4/5">
         <DialogHeader className="p-4">
           <DialogTitle>
             <h2 className="text-lg font-semibold tracking-tight">Shipyard</h2>
