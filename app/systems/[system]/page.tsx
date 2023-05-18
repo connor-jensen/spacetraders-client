@@ -17,7 +17,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { useFuelPrice, useShipyard, useWaypoints } from "@/hooks/systemsHooks";
-import { Ship, ShipRole, ShipType, Waypoint } from "@/spacetraders-sdk/src";
+import { Ship, ShipRole, ShipType, Waypoint, WaypointTrait } from "@/spacetraders-sdk/src";
 import { DialogDescription, DialogTitle } from "@radix-ui/react-dialog";
 import {
   useDockShip,
@@ -26,6 +26,7 @@ import {
   useOrbitShip,
   usePurchaseShip,
   useRefuelShip,
+  useSellAllCargo,
   useShips,
 } from "@/hooks/fleetHooks";
 import {
@@ -148,7 +149,7 @@ function LocalShipActions({
           {ship.registration.role} - {ship.symbol.split("-")[1]}
         </Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[525px] rounded-2xl p-4 sm:rounded-2xl bg-popover border-none max-h-3/4">
+      <DialogContent className="sm:max-w-[525px] rounded-2xl p-4 sm:rounded-2xl bg-popover border-none h-3/4 flex flex-col">
         <DialogHeader className="px-4 py-1">
           <DialogTitle >
             <h2 className="text-lg font-semibold tracking-tight">
@@ -163,10 +164,11 @@ function LocalShipActions({
           </DialogDescription>
         </DialogHeader>
         <ScrollArea className="px-4">
-          <div className="flex gap-5 flex-col px-4">
+          <div className="flex gap-5 flex-col px-4 items-start-start">
             {waypoint.type === "ASTEROID_FIELD" && <MineAction ship={ship} />}
             {ship.nav.status === "DOCKED" && <RefuelAction ship={ship} />}
             {ship.nav.status !== "IN_TRANSIT" && <FlightStatus ship={ship} />}
+            {waypoint.traits.find((trait: WaypointTrait) => trait.symbol === "MARKETPLACE") && <SellCargoAction ship={ship}/>}
           </div>
         </ScrollArea>
       </DialogContent>
@@ -270,6 +272,31 @@ function MineAction({ ship }: { ship: Ship }) {
   );
 }
 
+function SellCargoAction({ ship }: { ship: Ship }) {
+  const { mutate: sellCargo } = useSellAllCargo(ship.symbol, ship.cargo.inventory);
+
+  const CargoDetails = () => (
+    <>
+      <h3>{`Cargo: ${ship?.cargo.units} / ${ship.cargo.capacity}`}</h3>
+      {ship.cargo.units > 0 && (
+        <ul className="cardsubsection">
+          {ship.cargo.inventory.map((item) => (
+            <li  className="text-violetgray" key={item.name}><span  className="font-bold mr-1">{item.units}</span>{` ${item.name}`}</li>
+          ))}
+        </ul>
+      )}
+    </>
+  );
+  return (
+    <ShipAction
+      title={"Sell All Cargo"}
+      description={"Sell all cargo currently held at the market at this location"}
+      content={<CargoDetails />}
+      clickHandler={sellCargo}
+    />
+  );
+}
+
 function ShipAction({
   title,
   description,
@@ -310,7 +337,7 @@ function ShipYardButton({ waypointSymbol }: { waypointSymbol: string }) {
           SHIPYARD
         </Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[525px] rounded-2xl p-4 sm:rounded-2xl bg-popover border-none max-h-4/5">
+      <DialogContent className="sm:max-w-[525px] rounded-2xl p-4 sm:rounded-2xl bg-popover border-none h-3/4">
         <DialogHeader className="p-4">
           <DialogTitle>
             <h2 className="text-lg font-semibold tracking-tight">Shipyard</h2>
@@ -323,7 +350,7 @@ function ShipYardButton({ waypointSymbol }: { waypointSymbol: string }) {
         </DialogHeader>
         <ScrollArea className="px-4">
           {shipyardData?.ships && (
-            <div className="flex gap-5 flex-col px-4">
+            <div className="flex justify-start gap-5 flex-col px-4">
               {shipyardData.ships.map((ship) => (
                 <NewCard key={ship.type} className="rounded-xl bg-spacegray">
                   <CardHeader>

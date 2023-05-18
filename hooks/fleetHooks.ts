@@ -1,5 +1,5 @@
 "use client";
-import { ShipType } from "@/spacetraders-sdk/src";
+import { SellCargo201Response, SellCargo201ResponseData, ShipCargoItem, ShipType } from "@/spacetraders-sdk/src";
 import { fleetApi } from "@/utils/spacetraders-apis";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
@@ -88,7 +88,7 @@ export const useDockShip = (shipSymbol: string) => {
       queryClient.invalidateQueries({ queryKey: ["ships"] });
     },
   });
-}
+};
 
 export const useOrbitShip = (shipSymbol: string) => {
   const queryClient = useQueryClient();
@@ -103,7 +103,7 @@ export const useOrbitShip = (shipSymbol: string) => {
       queryClient.invalidateQueries({ queryKey: ["ships"] });
     },
   });
-}
+};
 
 export const useRefuelShip = (shipSymbol: string) => {
   const queryClient = useQueryClient();
@@ -118,4 +118,31 @@ export const useRefuelShip = (shipSymbol: string) => {
       queryClient.invalidateQueries({ queryKey: ["ships", "agent"] });
     },
   });
-}
+};
+
+export const useSellAllCargo = (
+  shipSymbol: string,
+  inventory: ShipCargoItem[]
+) => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async () => {
+      let data = [];
+      for (const inv of inventory) {
+        try {
+          const {data: res} = await fleetApi.sellCargo({
+            shipSymbol,
+            sellCargoRequest: { symbol: inv.symbol, units: inv.units },
+          });
+          data.push(res);
+        } catch (err) {
+          data.push(err);
+        }
+      }
+      return data as SellCargo201ResponseData[];
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["ships", "agent"] });
+    },
+  });
+};
