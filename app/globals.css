@@ -133,9 +133,11 @@ h6 {
     --card-foreground: 268 5% 91%;
 
     --border: 241 8% 17%;
-    --input: 241 8% 17%;
+    --input: 241 8% 25%;
 
-    --primary: 235 15% 88%;
+    /* --primary: 235 15% 88%;
+    --primary-foreground: 277.2 12% 1.2%; */
+    --primary: 270 4% 85%;
     --primary-foreground: 277.2 12% 1.2%;
 
     /* --secondary: 247.2 12% 11.2%;

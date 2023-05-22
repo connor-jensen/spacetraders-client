@@ -1,5 +1,5 @@
 "use client";
-import { SellCargo201Response, SellCargo201ResponseData, ShipCargoItem, ShipType } from "@/spacetraders-sdk/src";
+import { SellCargo201Response, SellCargo201ResponseData, Ship, ShipCargoItem, ShipType } from "@/spacetraders-sdk/src";
 import { fleetApi } from "@/utils/spacetraders-apis";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
@@ -34,7 +34,8 @@ export const usePurchaseShip = (shipType: ShipType, waypointSymbol: string) => {
       return data;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["ships", "agent"] });
+      queryClient.invalidateQueries({ queryKey: ["ships"] });
+      queryClient.invalidateQueries({ queryKey: ["agent"] });
     },
   });
 };
@@ -51,8 +52,6 @@ export const useMine = (shipSymbol: string) => {
       });
       return data;
     },
-    // we probably shouldn't invalidate ships here, since the response from this endpoint actually returns
-    // everything we need (what minerals were added to the ship and how long the cooldown is)
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["ships"] });
     },
@@ -99,6 +98,23 @@ export const useOrbitShip = (shipSymbol: string) => {
       });
       return data;
     },
+    // optimistic update
+    onMutate: async () => {
+      // Cancel any outgoing refetches
+      // (so they don't overwrite our optimistic update)
+      await queryClient.cancelQueries({ queryKey: ["ships"]})
+
+      // Snapshot previous value
+      const data = queryClient.getQueryData(["ships"]) as Ship[]
+      const previousStatus = data.find(ship => ship.symbol === shipSymbol)?.nav.status
+
+      queryClient.setQueryData<Ship[]>(['ships'], (oldShipData) => {
+        if (oldShipData) return [...oldShipData]
+        else return []
+      })
+
+      console.log(previousStatus)
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["ships"] });
     },
@@ -115,7 +131,9 @@ export const useRefuelShip = (shipSymbol: string) => {
       return data;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["ships", "agent"] });
+      queryClient.invalidateQueries({ queryKey: ["ships"] });
+      queryClient.invalidateQueries({ queryKey: ["agent"] });
+
     },
   });
 };
@@ -142,7 +160,8 @@ export const useSellAllCargo = (
       return data as SellCargo201ResponseData[];
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["ships", "agent"] });
+      queryClient.invalidateQueries({ queryKey: ["ships"] });
+      queryClient.invalidateQueries({ queryKey: ["agent"] });
     },
   });
 };

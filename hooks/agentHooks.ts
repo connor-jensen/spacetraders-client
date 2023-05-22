@@ -11,3 +11,13 @@ export const useAgent = () => {
     },
   })
 }
+
+export const useCredits = () => {
+  return useQuery({
+    queryKey: ['credits'],
+    queryFn: async () => {
+      const { data } = await agentsApi.getMyAgent()
+      return data.credits;
+    },
+  })
+}

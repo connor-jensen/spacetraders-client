@@ -21,7 +21,7 @@ export default function RootLayout({
           <div className="fixed top-24 left-0">
             <RadialProgress seconds={5}/>
           </div>
-          <div className="p-8">
+          <div className="py-8 md:px-8 sm:px-0">
           {children}
           </div>
         </Providers>

@@ -6,9 +6,8 @@ import {
   CardHeader,
   CardTitle,
   CardDescription,
-  Card as NewCard,
+  Card,
 } from "@/components/ui/card";
-import Card from "@/components/Generic/Card";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -17,7 +16,13 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { useFuelPrice, useShipyard, useWaypoints } from "@/hooks/systemsHooks";
-import { Ship, ShipRole, ShipType, Waypoint, WaypointTrait } from "@/spacetraders-sdk/src";
+import {
+  Ship,
+  ShipRole,
+  ShipType,
+  Waypoint,
+  WaypointTrait,
+} from "@/spacetraders-sdk/src";
 import { DialogDescription, DialogTitle } from "@radix-ui/react-dialog";
 import {
   useDockShip,
@@ -54,23 +59,22 @@ export default function SystemPage({ params }: { params: { system: string } }) {
     return null;
   }
 
-  const sortedWaypoints = waypoints.sort((a,b) => {
-    if (a.type > b.type) return 1
-    else if (b.type < a.type) return -1
+  const sortedWaypoints = waypoints.sort((a, b) => {
+    if (a.type > b.type) return 1;
+    else if (b.type < a.type) return -1;
     else if (a.type === b.type) {
-      return a.symbol > b.symbol ? 1 : -1
-    }
-    else return -1
-  })
+      return a.symbol > b.symbol ? 1 : -1;
+    } else return -1;
+  });
 
   return (
     <>
       <div className="flex justify-center">
         <div>
-          <h1 className="text-2xl text-secondary ml-6">
+          <h1 className="text-2xl text-secondary mb-6">
             System {params.system}
           </h1>
-          <div className="grid gap-4 lg:grid-cols-4 lg:max-w-screen-xl md:grid-cols-2 sm:grid-cols-1">
+          <div className="grid gap-12 lg:grid-cols-4 lg:max-w-screen-xl md:grid-cols-2 sm:grid-cols-1">
             {sortedWaypoints.map((waypoint) => {
               return (
                 <WaypointCard
@@ -100,31 +104,47 @@ function WaypointCard({
     (ship) => ship.nav.waypointSymbol === waypoint.symbol
   );
   return (
-    <Card>
-      <h2 className="flex justify-between items-baseline flex-wrap gap-1 font-bold tracking-widest">
-        {waypoint.type.replaceAll("_", " ")}{" "}
-        <span className="text-muted-foreground text-sm tracking-normal">{waypointName}</span>
-      </h2>
-      <ul>
-        {waypoint.traits.map((trait) => {
-          if (trait.symbol === "SHIPYARD") {
+  <Card>
+      <CardHeader>
+        <h2 className="flex justify-between items-baseline flex-wrap gap-1 font-bold tracking-widest">
+          {waypoint.type.replaceAll("_", " ")}{" "}
+          <span className="text-muted-foreground text-sm tracking-normal">
+            {waypointName}
+          </span>
+        </h2>
+      </CardHeader>
+      <CardContent>
+        <ul>
+          {waypoint.traits.map((trait) => {
+            if (trait.symbol === "SHIPYARD") {
+              return (
+                <ShipYardButton
+                  key={waypoint.symbol}
+                  waypointSymbol={waypoint.symbol}
+                />
+              );
+            }
             return (
-              <ShipYardButton
-                key={waypoint.symbol}
-                waypointSymbol={waypoint.symbol}
-              />
+              <li className="text-violetgray/90" key={trait.symbol}>
+                {trait.name}
+              </li>
             );
-          }
-          return <li className="text-violetgray/90" key={trait.symbol}>{trait.name}</li>;
-        })}
-      </ul>
-      {localShips &&
-        localShips.length > 0 &&
-        localShips?.map((ship) => (
-          <LocalShipActions key={ship.symbol} ship={ship} waypoint={waypoint} />
-        ))}
+          })}
+        </ul>
+      </CardContent>
+      <CardFooter className="flex-col items-stretch gap-4">
+        {localShips &&
+          localShips.length > 0 &&
+          localShips?.map((ship) => (
+            <LocalShipActions
+              key={ship.symbol}
+              ship={ship}
+              waypoint={waypoint}
+            />
+          ))}
 
-      <SendShipMenu waypoint={waypoint.symbol} />
+        <SendShipMenu waypoint={waypoint.symbol} />
+      </CardFooter>
     </Card>
   );
 }
@@ -151,7 +171,7 @@ function LocalShipActions({
       </DialogTrigger>
       <DialogContent className="sm:max-w-[525px] rounded-2xl p-4 sm:rounded-2xl bg-popover border-none h-3/4 flex flex-col">
         <DialogHeader className="px-4 py-1">
-          <DialogTitle >
+          <DialogTitle>
             <h2 className="text-lg font-semibold tracking-tight">
               {ship.symbol} ({ship.registration.role})
             </h2>
@@ -168,7 +188,9 @@ function LocalShipActions({
             {waypoint.type === "ASTEROID_FIELD" && <MineAction ship={ship} />}
             {ship.nav.status === "DOCKED" && <RefuelAction ship={ship} />}
             {ship.nav.status !== "IN_TRANSIT" && <FlightStatus ship={ship} />}
-            {waypoint.traits.find((trait: WaypointTrait) => trait.symbol === "MARKETPLACE") && <SellCargoAction ship={ship}/>}
+            {waypoint.traits.find(
+              (trait: WaypointTrait) => trait.symbol === "MARKETPLACE"
+            ) && <SellCargoAction ship={ship} />}
           </div>
         </ScrollArea>
       </DialogContent>
@@ -256,7 +278,10 @@ function MineAction({ ship }: { ship: Ship }) {
       {ship.cargo.units > 0 && (
         <ul className="cardsubsection">
           {ship.cargo.inventory.map((item) => (
-            <li  className="text-violetgray" key={item.name}><span  className="font-bold mr-1">{item.units}</span>{` ${item.name}`}</li>
+            <li className="text-violetgray" key={item.name}>
+              <span className="font-bold mr-1">{item.units}</span>
+              {` ${item.name}`}
+            </li>
           ))}
         </ul>
       )}
@@ -273,7 +298,10 @@ function MineAction({ ship }: { ship: Ship }) {
 }
 
 function SellCargoAction({ ship }: { ship: Ship }) {
-  const { mutate: sellCargo } = useSellAllCargo(ship.symbol, ship.cargo.inventory);
+  const { mutate: sellCargo } = useSellAllCargo(
+    ship.symbol,
+    ship.cargo.inventory
+  );
 
   const CargoDetails = () => (
     <>
@@ -281,7 +309,10 @@ function SellCargoAction({ ship }: { ship: Ship }) {
       {ship.cargo.units > 0 && (
         <ul className="cardsubsection">
           {ship.cargo.inventory.map((item) => (
-            <li  className="text-violetgray" key={item.name}><span  className="font-bold mr-1">{item.units}</span>{` ${item.name}`}</li>
+            <li className="text-violetgray" key={item.name}>
+              <span className="font-bold mr-1">{item.units}</span>
+              {` ${item.name}`}
+            </li>
           ))}
         </ul>
       )}
@@ -290,7 +321,9 @@ function SellCargoAction({ ship }: { ship: Ship }) {
   return (
     <ShipAction
       title={"Sell All Cargo"}
-      description={"Sell all cargo currently held at the market at this location"}
+      description={
+        "Sell all cargo currently held at the market at this location"
+      }
       content={<CargoDetails />}
       clickHandler={sellCargo}
     />
@@ -309,7 +342,7 @@ function ShipAction({
   clickHandler: Function;
 }) {
   return (
-    <NewCard className="rounded-xl bg-spacegray">
+    <Card className="rounded-xl bg-spacegray">
       <CardHeader>
         <CardTitle className="text-violetgray">{title}</CardTitle>
         <CardDescription>{description}</CardDescription>
@@ -324,7 +357,7 @@ function ShipAction({
           {title.toUpperCase()}
         </Button>
       </CardFooter>
-    </NewCard>
+    </Card>
   );
 }
 
@@ -352,7 +385,7 @@ function ShipYardButton({ waypointSymbol }: { waypointSymbol: string }) {
           {shipyardData?.ships && (
             <div className="flex justify-start gap-5 flex-col px-4">
               {shipyardData.ships.map((ship) => (
-                <NewCard key={ship.type} className="rounded-xl bg-spacegray">
+                <Card key={ship.type} className="rounded-xl bg-spacegray">
                   <CardHeader>
                     <CardTitle>{ship.name}</CardTitle>
                   </CardHeader>
@@ -391,7 +424,7 @@ function ShipYardButton({ waypointSymbol }: { waypointSymbol: string }) {
                       waypoint={shipyardData.symbol}
                     />
                   </CardFooter>
-                </NewCard>
+                </Card>
               ))}
             </div>
           )}
