@@ -2,6 +2,7 @@
 import { SellCargo201Response, SellCargo201ResponseData, Ship, ShipCargoItem, ShipType } from "@/spacetraders-sdk/src";
 import { fleetApi } from "@/utils/spacetraders-apis";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { produce } from 'immer'
 
 export const useShips = () => {
   return useQuery({
@@ -105,19 +106,36 @@ export const useOrbitShip = (shipSymbol: string) => {
       await queryClient.cancelQueries({ queryKey: ["ships"]})
 
       // Snapshot previous value
-      const data = queryClient.getQueryData(["ships"]) as Ship[]
-      const previousStatus = data.find(ship => ship.symbol === shipSymbol)?.nav.status
+      const previousState = queryClient.getQueryData(["ships"]) as Ship[]
+      const previousStatus = previousState.find(ship => ship.symbol === shipSymbol)?.nav.status
 
-      queryClient.setQueryData<Ship[]>(['ships'], (oldShipData) => {
-        if (oldShipData) return [...oldShipData]
-        else return []
+      const nextState = produce(previousState, (draftState) => {
+        const targetShip = previousState.find(ship => ship.symbol === shipSymbol)
+
+        if (targetShip === undefined) return
+
+        if (targetShip.nav.status === "DOCKED") {
+          targetShip.nav.status = "IN_ORBIT"
+        }
+
+        else if (targetShip.nav.status === "IN_ORBIT") {
+          targetShip.nav.status = "DOCKED"
+        }
       })
 
-      console.log(previousStatus)
+      queryClient.setQueryData<Ship[]>(['ships'], (oldShipData) => nextState)
+
+      return { previousState };
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["ships"] });
+    onError: (err, variables, context) => {
+      queryClient.setQueryData(['ships'], context?.previousState)
     },
+    onSettled: () => {
+      queryClient.invalidateQueries({queryKey: ['ships']})
+    },
+    // onSuccess: () => {
+    //   queryClient.invalidateQueries({ queryKey: ["ships"] });
+    // },
   });
 };
 

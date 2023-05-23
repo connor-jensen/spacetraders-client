@@ -16,71 +16,50 @@ import { exists, mapValues } from '../runtime';
 /**
  * 
  * @export
- * @interface RegisterRequest
+ * @interface GetStatus200ResponseServerResets
  */
-export interface RegisterRequest {
+export interface GetStatus200ResponseServerResets {
     /**
-     * The faction you choose determines your headquarters.
+     * The date and time when the game server will reset.
      * @type {string}
-     * @memberof RegisterRequest
+     * @memberof GetStatus200ResponseServerResets
      */
-    faction: RegisterRequestFactionEnum;
+    next: string;
     /**
-     * How other agents will see your ships and information.
+     * How often we intend to reset the game server.
      * @type {string}
-     * @memberof RegisterRequest
+     * @memberof GetStatus200ResponseServerResets
      */
-    symbol: string;
-    /**
-     * Your email address. This is used if you reserved your call sign between resets.
-     * @type {string}
-     * @memberof RegisterRequest
-     */
-    email?: string;
+    frequency: string;
 }
 
-
 /**
- * @export
+ * Check if a given object implements the GetStatus200ResponseServerResets interface.
  */
-export const RegisterRequestFactionEnum = {
-    Cosmic: 'COSMIC',
-    Void: 'VOID',
-    Galactic: 'GALACTIC',
-    Quantum: 'QUANTUM',
-    Dominion: 'DOMINION'
-} as const;
-export type RegisterRequestFactionEnum = typeof RegisterRequestFactionEnum[keyof typeof RegisterRequestFactionEnum];
-
-
-/**
- * Check if a given object implements the RegisterRequest interface.
- */
-export function instanceOfRegisterRequest(value: object): boolean {
+export function instanceOfGetStatus200ResponseServerResets(value: object): boolean {
     let isInstance = true;
-    isInstance = isInstance && "faction" in value;
-    isInstance = isInstance && "symbol" in value;
+    isInstance = isInstance && "next" in value;
+    isInstance = isInstance && "frequency" in value;
 
     return isInstance;
 }
 
-export function RegisterRequestFromJSON(json: any): RegisterRequest {
-    return RegisterRequestFromJSONTyped(json, false);
+export function GetStatus200ResponseServerResetsFromJSON(json: any): GetStatus200ResponseServerResets {
+    return GetStatus200ResponseServerResetsFromJSONTyped(json, false);
 }
 
-export function RegisterRequestFromJSONTyped(json: any, ignoreDiscriminator: boolean): RegisterRequest {
+export function GetStatus200ResponseServerResetsFromJSONTyped(json: any, ignoreDiscriminator: boolean): GetStatus200ResponseServerResets {
     if ((json === undefined) || (json === null)) {
         return json;
     }
     return {
         
-        'faction': json['faction'],
-        'symbol': json['symbol'],
-        'email': !exists(json, 'email') ? undefined : json['email'],
+        'next': json['next'],
+        'frequency': json['frequency'],
     };
 }
 
-export function RegisterRequestToJSON(value?: RegisterRequest | null): any {
+export function GetStatus200ResponseServerResetsToJSON(value?: GetStatus200ResponseServerResets | null): any {
     if (value === undefined) {
         return undefined;
     }
@@ -89,9 +68,8 @@ export function RegisterRequestToJSON(value?: RegisterRequest | null): any {
     }
     return {
         
-        'faction': value.faction,
-        'symbol': value.symbol,
-        'email': value.email,
+        'next': value.next,
+        'frequency': value.frequency,
     };
 }
 

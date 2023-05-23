@@ -42,7 +42,7 @@ export interface Cooldown {
      * @type {Date}
      * @memberof Cooldown
      */
-    expiration: Date;
+    expiration?: Date;
 }
 
 /**
@@ -53,7 +53,6 @@ export function instanceOfCooldown(value: object): boolean {
     isInstance = isInstance && "shipSymbol" in value;
     isInstance = isInstance && "totalSeconds" in value;
     isInstance = isInstance && "remainingSeconds" in value;
-    isInstance = isInstance && "expiration" in value;
 
     return isInstance;
 }
@@ -71,7 +70,7 @@ export function CooldownFromJSONTyped(json: any, ignoreDiscriminator: boolean): 
         'shipSymbol': json['shipSymbol'],
         'totalSeconds': json['totalSeconds'],
         'remainingSeconds': json['remainingSeconds'],
-        'expiration': (new Date(json['expiration'])),
+        'expiration': !exists(json, 'expiration') ? undefined : (new Date(json['expiration'])),
     };
 }
 
@@ -87,7 +86,7 @@ export function CooldownToJSON(value?: Cooldown | null): any {
         'shipSymbol': value.shipSymbol,
         'totalSeconds': value.totalSeconds,
         'remainingSeconds': value.remainingSeconds,
-        'expiration': (value.expiration.toISOString()),
+        'expiration': value.expiration === undefined ? undefined : (value.expiration.toISOString()),
     };
 }
 

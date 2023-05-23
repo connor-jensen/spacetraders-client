@@ -34,6 +34,7 @@ import type {
   JumpShipRequest,
   NavigateShip200Response,
   NavigateShipRequest,
+  NegotiateContract200Response,
   OrbitShip200Response,
   PatchShipNavRequest,
   PurchaseCargo201Response,
@@ -87,6 +88,8 @@ import {
     NavigateShip200ResponseToJSON,
     NavigateShipRequestFromJSON,
     NavigateShipRequestToJSON,
+    NegotiateContract200ResponseFromJSON,
+    NegotiateContract200ResponseToJSON,
     OrbitShip200ResponseFromJSON,
     OrbitShip200ResponseToJSON,
     PatchShipNavRequestFromJSON,
@@ -178,6 +181,11 @@ export interface JumpShipOperationRequest {
 export interface NavigateShipOperationRequest {
     shipSymbol: string;
     navigateShipRequest?: NavigateShipRequest;
+}
+
+export interface NegotiateContractRequest {
+    shipSymbol: string;
+    body?: any | null;
 }
 
 export interface OrbitShipRequest {
@@ -758,7 +766,7 @@ export class FleetApi extends runtime.BaseAPI {
     }
 
     /**
-     * Jump your ship instantly to a target system. Unlike other forms of navigation, jumping requires a unit of antimatter.
+     * Jump your ship instantly to a target system. When used while in orbit or docked to a jump gate waypoint, any ship can use this command. When used elsewhere, jumping requires a jump drive unit and consumes a unit of antimatter (which needs to be in your cargo).
      * Jump Ship
      */
     async jumpShipRaw(requestParameters: JumpShipOperationRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<JumpShip200Response>> {
@@ -792,7 +800,7 @@ export class FleetApi extends runtime.BaseAPI {
     }
 
     /**
-     * Jump your ship instantly to a target system. Unlike other forms of navigation, jumping requires a unit of antimatter.
+     * Jump your ship instantly to a target system. When used while in orbit or docked to a jump gate waypoint, any ship can use this command. When used elsewhere, jumping requires a jump drive unit and consumes a unit of antimatter (which needs to be in your cargo).
      * Jump Ship
      */
     async jumpShip(requestParameters: JumpShipOperationRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<JumpShip200Response> {
@@ -840,6 +848,49 @@ export class FleetApi extends runtime.BaseAPI {
      */
     async navigateShip(requestParameters: NavigateShipOperationRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<NavigateShip200Response> {
         const response = await this.navigateShipRaw(requestParameters, initOverrides);
+        return await response.value();
+    }
+
+    /**
+     * 
+     * Negotiate Contract
+     */
+    async negotiateContractRaw(requestParameters: NegotiateContractRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<NegotiateContract200Response>> {
+        if (requestParameters.shipSymbol === null || requestParameters.shipSymbol === undefined) {
+            throw new runtime.RequiredError('shipSymbol','Required parameter requestParameters.shipSymbol was null or undefined when calling negotiateContract.');
+        }
+
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        headerParameters['Content-Type'] = 'application/json';
+
+        if (this.configuration && this.configuration.accessToken) {
+            const token = this.configuration.accessToken;
+            const tokenString = await token("AgentToken", []);
+
+            if (tokenString) {
+                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+            }
+        }
+        const response = await this.request({
+            path: `/my/ships/{shipSymbol}/negotiate/contract`.replace(`{${"shipSymbol"}}`, encodeURIComponent(String(requestParameters.shipSymbol))),
+            method: 'POST',
+            headers: headerParameters,
+            query: queryParameters,
+            body: requestParameters.body as any,
+        }, initOverrides);
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => NegotiateContract200ResponseFromJSON(jsonValue));
+    }
+
+    /**
+     * 
+     * Negotiate Contract
+     */
+    async negotiateContract(requestParameters: NegotiateContractRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<NegotiateContract200Response> {
+        const response = await this.negotiateContractRaw(requestParameters, initOverrides);
         return await response.value();
     }
 

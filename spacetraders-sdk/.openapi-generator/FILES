@@ -1,6 +1,5 @@
 .gitignore
 .npmignore
-.openapi-generator-ignore
 README.md
 package.json
 src/apis/AgentsApi.ts
@@ -56,6 +55,14 @@ src/models/GetMyShips200Response.ts
 src/models/GetShipCooldown200Response.ts
 src/models/GetShipNav200Response.ts
 src/models/GetShipyard200Response.ts
+src/models/GetStatus200Response.ts
+src/models/GetStatus200ResponseAnnouncementsInner.ts
+src/models/GetStatus200ResponseLeaderboards.ts
+src/models/GetStatus200ResponseLeaderboardsMostCreditsInner.ts
+src/models/GetStatus200ResponseLeaderboardsMostSubmittedChartsInner.ts
+src/models/GetStatus200ResponseLinksInner.ts
+src/models/GetStatus200ResponseServerResets.ts
+src/models/GetStatus200ResponseStats.ts
 src/models/GetSystem200Response.ts
 src/models/GetSystemWaypoints200Response.ts
 src/models/GetSystems200Response.ts
@@ -74,6 +81,8 @@ src/models/Meta.ts
 src/models/NavigateShip200Response.ts
 src/models/NavigateShip200ResponseData.ts
 src/models/NavigateShipRequest.ts
+src/models/NegotiateContract200Response.ts
+src/models/NegotiateContract200ResponseData.ts
 src/models/OrbitShip200Response.ts
 src/models/OrbitShip200ResponseData.ts
 src/models/PatchShipNavRequest.ts
