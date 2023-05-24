@@ -48,7 +48,7 @@ export default function ShipCard({ ship }: { ship: Ship }) {
             {ship.symbol}
           </span>
         </div>
-        <Button variant={"ghost"}>
+        {ship.nav.status !== 'IN_TRANSIT' && <Button variant={"ghost"}>
           <Link
             className="underline underline-offset-4 text-secondary flex gap-2 items-center"
             href={`/systems/${ship.nav.systemSymbol}`}
@@ -57,7 +57,7 @@ export default function ShipCard({ ship }: { ship: Ship }) {
             <span className="font-bold">{ship.nav.waypointSymbol}</span>
             {/* {ship.nav.waypointSymbol} */}
           </Link>
-        </Button>
+        </Button>}
         <div className="flex items-center space-x-2">
           <Label
             htmlFor="docked-status"
