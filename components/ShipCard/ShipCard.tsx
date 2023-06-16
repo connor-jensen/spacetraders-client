@@ -1,8 +1,15 @@
 "use client";
 
-import { useDockShip, useOrbitShip, useShip } from "@/hooks/fleetHooks";
+import {
+  useDockShip,
+  useMine,
+  useOrbitShip,
+  useSellAllCargo,
+  useShip,
+  useShipCooldown,
+} from "@/hooks/fleetHooks";
 import { Card, CardContent, CardFooter, CardHeader } from "../ui/card";
-import { Ship } from "@/spacetraders-sdk/src";
+import { Cooldown, Ship } from "@/spacetraders-sdk/src";
 import Link from "next/link";
 import { Button } from "../ui/button";
 import {
@@ -25,10 +32,19 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { useEffect, useState } from "react";
 
 export default function ShipCard({ ship }: { ship: Ship }) {
   const { mutate: dockShip } = useDockShip(ship.symbol);
   const { mutate: orbitShip } = useOrbitShip(ship.symbol);
+  const { mutate: mine } = useMine(ship.symbol);
+  const { mutate: sellCargo } = useSellAllCargo(
+    ship.symbol,
+    ship.cargo.inventory
+  );
+  const { data: cooldownData } = useShipCooldown(ship.symbol);
+
+  const onCooldown = cooldownData && cooldownData.remainingSeconds > 0;
 
   const toggleDockedOrOrbit = () => {
     if (ship.nav.status === "IN_ORBIT") {
@@ -48,16 +64,18 @@ export default function ShipCard({ ship }: { ship: Ship }) {
             {ship.symbol}
           </span>
         </div>
-        {ship.nav.status !== 'IN_TRANSIT' && <Button variant={"ghost"}>
-          <Link
-            className="underline underline-offset-4 text-secondary flex gap-2 items-center"
-            href={`/systems/${ship.nav.systemSymbol}`}
-          >
-            <Orbit className="opacity-80" />
-            <span className="font-bold">{ship.nav.waypointSymbol}</span>
-            {/* {ship.nav.waypointSymbol} */}
-          </Link>
-        </Button>}
+        {ship.nav.status !== "IN_TRANSIT" && (
+          <Button variant={"ghost"}>
+            <Link
+              className="underline underline-offset-4 text-secondary flex gap-2 items-center"
+              href={`/systems/${ship.nav.systemSymbol}`}
+            >
+              <Orbit className="opacity-80" />
+              <span className="font-bold">{ship.nav.waypointSymbol}</span>
+              {/* {ship.nav.waypointSymbol} */}
+            </Link>
+          </Button>
+        )}
         <div className="flex items-center space-x-2">
           <Label
             htmlFor="docked-status"
@@ -92,36 +110,41 @@ export default function ShipCard({ ship }: { ship: Ship }) {
           <div className="bg-popover p-4 grid rounded-xl gap-4 grid-cols-3 w-fit">
             <ToolTipWrapper tooltipText="Mine">
               <Button
-                className="h-16 w-20 hover:stroke-secondary"
+                className="h-16 w-20"
                 variant={"ghost"}
+                disabled={ship.nav.status !== "IN_ORBIT"}
+                onClick={() => mine()}
               >
-                <svg
-                  width="80%"
-                  height="80%"
-                  viewBox="0 0 22 22"
-                  fill="none"
-                  xmlns="http://www.w3.org/2000/svg"
-                  className="stroke-muted-foreground"
-                >
-                  <path
-                    d="M5.04697 2.16705C10.921 6.2495 15.9945 11.638 19.9767 18.0236"
-                    stroke-width="2"
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                  />
-                  <path
-                    d="M13.5789 10.9392L5.45963 19.3817C4.66681 20.2061 3.38683 20.2061 2.59401 19.3817C2.4057 19.1861 2.25631 18.9539 2.15439 18.6983C2.05246 18.4426 2 18.1686 2 17.8918C2 17.6151 2.05246 17.3411 2.15439 17.0854C2.25631 16.8298 2.4057 16.5975 2.59401 16.402L10.7133 7.95944"
-                    stroke-width="2"
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                  />
-                  <path
-                    d="M20 18C20 18 20 17.0566 20 15.5283C20 14 19.6618 11.9934 19.0047 10.3529C18.3476 8.71248 17.3846 7.22255 16.1709 5.96857C14.961 4.71064 13.5234 3.71257 11.9406 3.03156C10.3578 2.35055 8.66085 2 6.94708 2C6.32296 2 5.66317 2.04649 5 2.1385"
-                    stroke-width="2"
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                  />
-                </svg>
+                <div className="flex flex-col gap-1 items-center">
+                  <svg
+                    width="80%"
+                    height="80%"
+                    viewBox="0 0 22 22"
+                    fill="none"
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="stroke-muted-foreground"
+                  >
+                    <path
+                      d="M5.04697 2.16705C10.921 6.2495 15.9945 11.638 19.9767 18.0236"
+                      stroke-width="2"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                    />
+                    <path
+                      d="M13.5789 10.9392L5.45963 19.3817C4.66681 20.2061 3.38683 20.2061 2.59401 19.3817C2.4057 19.1861 2.25631 18.9539 2.15439 18.6983C2.05246 18.4426 2 18.1686 2 17.8918C2 17.6151 2.05246 17.3411 2.15439 17.0854C2.25631 16.8298 2.4057 16.5975 2.59401 16.402L10.7133 7.95944"
+                      stroke-width="2"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                    />
+                    <path
+                      d="M20 18C20 18 20 17.0566 20 15.5283C20 14 19.6618 11.9934 19.0047 10.3529C18.3476 8.71248 17.3846 7.22255 16.1709 5.96857C14.961 4.71064 13.5234 3.71257 11.9406 3.03156C10.3578 2.35055 8.66085 2 6.94708 2C6.32296 2 5.66317 2.04649 5 2.1385"
+                      stroke-width="2"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                    />
+                  </svg>
+                  <Progress className="h-1" value={50} />
+                </div>
               </Button>
             </ToolTipWrapper>
             <Button className="h-16 w-20" variant={"ghost"}>
@@ -166,7 +189,12 @@ export default function ShipCard({ ship }: { ship: Ship }) {
                 className="stroke-muted-foreground"
               />
             </Button>
-            <Button className="h-16 w-20" variant={"ghost"}>
+            <Button
+              className="h-16 w-20"
+              variant={"ghost"}
+              onClick={() => sellCargo()}
+              disabled={ship.nav.status !== "DOCKED"}
+            >
               <DollarSign
                 height={"80%"}
                 width={"80%"}
@@ -206,9 +234,34 @@ export default function ShipCard({ ship }: { ship: Ship }) {
             )}
           </div>
         </div>
+        {cooldownData && <CooldownProgress cooldown={cooldownData} />}
       </CardContent>
     </Card>
   );
+}
+
+function CooldownProgress({ cooldown }: { cooldown: Cooldown }) {
+  // get seconds remainig from date
+  // const getSecondsRemaining = (date: Date) => {
+  //   const now = new Date();
+  //   const diff = date.getTime() - now.getTime();
+  //   return Math.floor(diff / 1000);
+  // };
+
+  // const [secondsLeft, setSecondsLeft] = useState(
+  //   getSecondsRemaining(new Date(cooldown.expiration))
+  // );
+
+  // useEffect(() => {
+  //   const interval = setInterval(() => {
+  //     setSecondsLeft((s) => s - 1);
+  //   }, 1000);
+  //   return () => clearInterval(interval);
+  // }, [cooldown.expiration]);
+
+  // return <Progress value={(secondsLeft/cooldown.totalSeconds) * 100} className="h-2 mt-2" />;
+  return <Progress value={50} className="h-2 mt-2" />;
+
 }
 
 function ToolTipWrapper({

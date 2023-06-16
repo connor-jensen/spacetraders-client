@@ -2,6 +2,7 @@
 import { SellCargo201Response, SellCargo201ResponseData, Ship, ShipCargoItem, ShipType } from "@/spacetraders-sdk/src";
 import { fleetApi } from "@/utils/spacetraders-apis";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { ca } from "date-fns/locale";
 import { produce } from 'immer'
 
 export const useShips = () => {
@@ -45,13 +46,20 @@ export const useMine = (shipSymbol: string) => {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async () => {
-      const { data } = await fleetApi.extractResources({
-        shipSymbol,
-        extractResourcesRequest: {
-          /* Add survey data here */
-        },
-      });
-      return data;
+      try {
+        console.log('trying...')
+        const { data } = await fleetApi.extractResources({
+          shipSymbol,
+          extractResourcesRequest: {
+            /* Add survey data here */
+          },
+        });
+        return data;
+      }
+      catch (error) {
+        console.log('catching!')
+        console.log(error)
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["ships"] });
@@ -63,10 +71,13 @@ export const useNavigateShip = (shipSymbol: string, waypointSymbol: string) => {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async () => {
-      const { data } = await fleetApi.navigateShip({
+      const response = await fleetApi.navigateShip({
+
+      // const { data } = await fleetApi.navigateShip({
         shipSymbol,
         navigateShipRequest: { waypointSymbol },
       });
+      const data = response.data
       return data;
     },
     onSuccess: () => {
@@ -84,9 +95,39 @@ export const useDockShip = (shipSymbol: string) => {
       });
       return data;
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["ships"] });
+     // optimistic update
+     onMutate: async () => {
+      // Cancel any outgoing refetches
+      // (so they don't overwrite our optimistic update)
+      await queryClient.cancelQueries({ queryKey: ["ships"]})
+
+      // Snapshot previous value
+      const previousState = queryClient.getQueryData(["ships"]) as Ship[]
+      const previousStatus = previousState.find(ship => ship.symbol === shipSymbol)?.nav.status
+
+      const nextState = produce(previousState, (draftState) => {
+        const targetShip = draftState.find(ship => ship.symbol === shipSymbol)
+
+        if (targetShip === undefined) return
+
+        else if (targetShip.nav.status === "IN_ORBIT") {
+          targetShip.nav.status = "DOCKED"
+        }
+      })
+
+      queryClient.setQueryData<Ship[]>(['ships'], (oldShipData) => nextState)
+
+      return { previousState };
     },
+    onError: (err, variables, context) => {
+      queryClient.setQueryData(['ships'], context?.previousState)
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({queryKey: ['ships']})
+    },
+    // onSuccess: () => {
+    //   queryClient.invalidateQueries({ queryKey: ["ships"] });
+    // },
   });
 };
 
@@ -110,7 +151,7 @@ export const useOrbitShip = (shipSymbol: string) => {
       const previousStatus = previousState.find(ship => ship.symbol === shipSymbol)?.nav.status
 
       const nextState = produce(previousState, (draftState) => {
-        const targetShip = previousState.find(ship => ship.symbol === shipSymbol)
+        const targetShip = draftState.find(ship => ship.symbol === shipSymbol)
 
         if (targetShip === undefined) return
 
@@ -118,9 +159,6 @@ export const useOrbitShip = (shipSymbol: string) => {
           targetShip.nav.status = "IN_ORBIT"
         }
 
-        else if (targetShip.nav.status === "IN_ORBIT") {
-          targetShip.nav.status = "DOCKED"
-        }
       })
 
       queryClient.setQueryData<Ship[]>(['ships'], (oldShipData) => nextState)
@@ -183,3 +221,13 @@ export const useSellAllCargo = (
     },
   });
 };
+
+export const useShipCooldown = (shipSymbol: string) => {
+  return useQuery({
+    queryKey:['ships'],
+    queryFn: async () => {
+      const { data } = await fleetApi.getShipCooldown({shipSymbol});
+      return data;
+    },
+  })
+}
