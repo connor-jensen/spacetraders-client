@@ -6,7 +6,7 @@ export const useWaypoints = (systemSymbol: string) => {
   return useQuery({
     queryKey: ['waypoints'],
     queryFn: async () => {
-      const { data } = await systemsApi.getSystemWaypoints({systemSymbol: systemSymbol})
+      const { data } = await systemsApi.getSystemWaypoints(systemSymbol)
       return data;
     },
   });
@@ -17,7 +17,7 @@ export const useShipyard = (waypointSymbol: string) => {
   return useQuery({
     queryKey: ['shipyard'],
     queryFn: async () => {
-      const { data } = await systemsApi.getShipyard({systemSymbol: systemSymbol, waypointSymbol: waypointSymbol})
+      const { data } = await systemsApi.getShipyard(systemSymbol, waypointSymbol)
       return data;
     },
   });
@@ -28,7 +28,7 @@ export const useMarket = (waypointSymbol: string) => {
   return useQuery({
     queryKey: ['market'],
     queryFn: async () => {
-      const { data } = await systemsApi.getMarket({systemSymbol: systemSymbol, waypointSymbol: waypointSymbol})
+      const { data } = await systemsApi.getMarket(systemSymbol, waypointSymbol)
       return data;
     },
   });
@@ -39,8 +39,9 @@ export const useFuelPrice = (waypointSymbol: string) => {
   const {data: fuelPrice}  = useQuery({
     queryKey: ['market'],
     queryFn: async () => {
-      const { data } = await systemsApi.getMarket({systemSymbol: systemSymbol, waypointSymbol: waypointSymbol})
-      const fuelObject = data.tradeGoods?.find(tradeGood => tradeGood.symbol === 'FUEL')
+      const { data } = await systemsApi.getMarket(systemSymbol, waypointSymbol)
+
+      const fuelObject = data.data.tradeGoods?.find(tradeGood => tradeGood.symbol === 'FUEL')
       if (!fuelObject) {
         return null
       }

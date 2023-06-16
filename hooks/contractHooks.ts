@@ -7,7 +7,7 @@ export const useContracts = () => {
     queryKey: ['contracts'],
     queryFn: async () => {
       const { data } = await contractsApi.getContracts()
-      return data;
+      return data.data;
     },
   })
 }
@@ -16,8 +16,8 @@ export const useAcceptContract = (contractId: string) => {
   const queryClient = useQueryClient()
   return useMutation({
     mutationFn: async () => {
-      const { data } = await contractsApi.acceptContract({contractId: contractId})
-      return data;
+      const { data } = await contractsApi.acceptContract(contractId)
+      return data.data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({queryKey: ['contracts', 'agent']})

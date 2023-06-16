@@ -7,7 +7,7 @@ export const useAgent = () => {
     queryKey: ['agent'],
     queryFn: async () => {
       const { data } = await agentsApi.getMyAgent()
-      return data;
+      return data.data;
     },
   })
 }
@@ -17,7 +17,7 @@ export const useCredits = () => {
     queryKey: ['credits'],
     queryFn: async () => {
       const { data } = await agentsApi.getMyAgent()
-      return data.credits;
+      return data.data.credits;
     },
   })
 }

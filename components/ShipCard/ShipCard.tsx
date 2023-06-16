@@ -9,7 +9,7 @@ import {
   useShipCooldown,
 } from "@/hooks/fleetHooks";
 import { Card, CardContent, CardFooter, CardHeader } from "../ui/card";
-import { Cooldown, Ship } from "@/spacetraders-sdk/src";
+import { Cooldown, Ship } from "@/spacetraders-sdk-old/src";
 import Link from "next/link";
 import { Button } from "../ui/button";
 import {

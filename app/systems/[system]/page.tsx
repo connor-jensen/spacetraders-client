@@ -22,7 +22,7 @@ import {
   ShipType,
   Waypoint,
   WaypointTrait,
-} from "@/spacetraders-sdk/src";
+} from "@/spacetraders-sdk-old/src";
 import { DialogDescription, DialogTitle } from "@radix-ui/react-dialog";
 import {
   useDockShip,

@@ -1,6 +1,6 @@
 "use client";
 
-import { Contract } from "@/spacetraders-sdk/src";
+import { Contract } from "@/spacetraders-sdk-old/src";
 import { Card } from "./ui/card";
 import { useAcceptContract } from "@/hooks/contractHooks";
 import { useCountdown } from "@/hooks/useCountdown";
